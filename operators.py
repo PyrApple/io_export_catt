@@ -57,6 +57,8 @@ def catt_setMaterialProps(mat):
     mat['abs_3'] = default_abs
     mat['abs_4'] = default_abs
     mat['abs_5'] = default_abs
+    mat['abs_6'] = default_abs
+    mat['abs_7'] = default_abs
 
     default_diff = 50.0
     mat['dif_0'] = default_diff
@@ -65,6 +67,8 @@ def catt_setMaterialProps(mat):
     mat['dif_3'] = default_diff
     mat['dif_4'] = default_diff
     mat['dif_5'] = default_diff
+    mat['dif_6'] = default_diff
+    mat['dif_7'] = default_diff
 
     # set identity
     mat['cattMaterial'] = True
@@ -149,14 +153,14 @@ class CattExportRoom(Operator):
             return {'CANCELLED'}
         else:
             info = []
-            ret = export.catt_export_room(context)
+            err = export.catt_export_room(context)
             # report.update(*info)
 
-            if ret:
+            if err == 0:
                 self.report({'INFO'}, 'Catt export complete')
                 return {'FINISHED'}
             else:
-                self.report({'WARNING'}, 'Cannot Export in Edit Mode')
+                self.report({'ERROR'}, 'Catt export aborted, check in the console for more details')
                 return {'CANCELLED'}
 
 class CattMaterialConvert(Operator):

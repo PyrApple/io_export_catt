@@ -37,6 +37,7 @@ def catt_export_room(context):
 
     # perform pre-export operations
     (vertices, faces) = catt_vertices_faces_from_object(obj)
+    print("number of faces in exported mesh: {}".format(len(faces)))
     # faces = catt_reorder_faces(vertices, faces)
 
     # set export paths
@@ -44,10 +45,10 @@ def catt_export_room(context):
     masterFileName = catt_export.master_file_name + ".GEO"
     masterFilepath = os.path.join(export_path, masterFileName)
     # export file (write)
-    catt_ascii_write(masterFilepath, vertices, faces, obj, catt_export.triangulate_faces, catt_export.master_file_name)
-    print('CATT file exported at {0}'.format(masterFilepath))
+    err = catt_ascii_write(masterFilepath, vertices, faces, obj, catt_export.triangulate_faces, catt_export.master_file_name)
+    print('Catt file exported at {0}'.format(masterFilepath))
 
-    return 1
+    return err
 
 
 def catt_vertices_faces_from_object(ob, use_mesh_modifiers=False):
@@ -76,7 +77,7 @@ def catt_vertices_faces_from_object(ob, use_mesh_modifiers=False):
     # print(ob.matrix_world)
 
     vertices = mesh.vertices
-    faces = mesh.tessfaces
+    faces = mesh.polygons
 
     return (vertices, faces)
 
@@ -107,7 +108,7 @@ def catt_ascii_write(filepath, vertices, faces, obj, triangulate, fileName):
         # write material(s)
         header = ""
         for mat in obj.data.materials:
-            tmp = "abs {0} = <{1} {2} {3} {4} {5} {6}> L <{7} {8} {9} {10} {11} {12}> {{{13} {14} {15}}} \n".format(mat.name,int(mat['abs_0']),int(mat['abs_1']),int(mat['abs_2']),int(mat['abs_3']),int(mat['abs_4']),int(mat['abs_5']),int(mat['dif_0']),int(mat['dif_1']),int(mat['dif_2']),int(mat['dif_3']),int(mat['dif_4']),int(mat['dif_5']),int(100*mat.diffuse_color[0]),int(100*mat.diffuse_color[1]),int(100*mat.diffuse_color[2]))
+            tmp = "abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name,int(mat['abs_0']),int(mat['abs_1']),int(mat['abs_2']),int(mat['abs_3']),int(mat['abs_4']),int(mat['abs_5']),int(mat['abs_6']),int(mat['abs_7']),int(mat['dif_0']),int(mat['dif_1']),int(mat['dif_2']),int(mat['dif_3']),int(mat['dif_4']),int(mat['dif_5']),int(mat['dif_6']),int(mat['dif_7']),int(100*mat.diffuse_color[0]),int(100*mat.diffuse_color[1]),int(100*mat.diffuse_color[2]))
             header = header + tmp
         fw('%s\n' % header)
 
@@ -126,7 +127,8 @@ def catt_ascii_write(filepath, vertices, faces, obj, triangulate, fileName):
             try:
                 planeMaterial = obj.data.materials[face.material_index].name
             except IndexError:
-                planeMaterial = 'fiberglass50' # default material
+                print("error: attempt to access material index {}, max is {}".format(face.material_index, len(obj.data.materials)))
+                return 1
 
             if len(face.vertices) == 4:
                 if not triangulate:
@@ -142,9 +144,10 @@ def catt_ascii_write(filepath, vertices, faces, obj, triangulate, fileName):
                 fw("[ {0} {1} / {2} {3} {4} / {5} ]\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], planeMaterial) )
                 faceID = faceID + 1
             else:
-                print('ERROR DURING EXPORT: ONLY TRIS AND QUADS MESHES ACCEPTED')
+                print("error: exporter only supports tris and quads, face {} has {} vertices".format(faceID, len(face.vertices)))
+                return 1
 
-
+    return 0
 
 
 # def catt_reorder_faces(vertices, faces):
