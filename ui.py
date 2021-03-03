@@ -100,7 +100,7 @@ class CattExportToolBar:
         row = layout.row()
         row.label("3. Apply scale (Ctrl+A)")
         row = layout.row()
-        row.label("4. Check all Quads are flat, else use triangulate option")
+        row.label("4. Check all faces are flat, else triangulate mesh")
         # -----------------------------------------------------------
 
         col = layout.column(align=True)
@@ -112,8 +112,8 @@ class CattExportToolBar:
         # rowsub.prop(catt_export, "use_export_texture", text="", icon='FILE_IMAGE')
         rowsub = col.row()
         rowsub.prop(catt_export, "export_path", text="")
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "triangulate_faces", text="Triangulate At Export")
+        # rowsub = col.row(align=True)
+        # rowsub.prop(catt_export, "triangulate_faces", text="Triangulate At Export")
 
         rowsub = col.row(align=True)
         rowsub.label("Exported .GEO file name:")

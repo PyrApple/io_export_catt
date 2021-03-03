@@ -130,22 +130,31 @@ def catt_ascii_write(filepath, vertices, faces, obj, triangulate, fileName):
                 print("error: attempt to access material index {}, max is {}".format(face.material_index, len(obj.data.materials)))
                 return 1
 
-            if len(face.vertices) == 4:
-                if not triangulate:
-                    fw("[ {0} {1} / {2} {3} {4} {5} / {6} ]\r\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], face.vertices[3], planeMaterial) )
-                    faceID = faceID + 1
-                else: # quads to tris to make sure all vertices of a plane are in the same plane in catt
-                    fw("[ {0} {1} / {2} {3} {4} / {5} ]\r\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], planeMaterial) )
-                    faceID = faceID + 1
-                    fw("[ {0} {1} / {2} {3} {4} / {5} ]\r\n".format(faceID, planeName, face.vertices[2], face.vertices[3], face.vertices[0], planeMaterial) )
-                    faceID = faceID + 1
+            # convert list of face vertices to string
+            faceVertices = ' '.join(map(str, face.vertices))
 
-            elif len(face.vertices) == 3:
-                fw("[ {0} {1} / {2} {3} {4} / {5} ]\r\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], planeMaterial) )
-                faceID = faceID + 1
-            else:
-                print("error: exporter only supports tris and quads, face {} has {} vertices".format(faceID, len(face.vertices)))
-                return 1
+            # write face line
+            fw("[ {0} {1} / {2} / {3} ]\r\n".format(faceID, planeName, faceVertices, planeMaterial) )
+
+            # incr. face counter
+            faceID = faceID + 1
+
+            # if len(face.vertices) == 4:
+            #     if not triangulate:
+            #         fw("[ {0} {1} / {2} {3} {4} {5} / {6} ]\r\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], face.vertices[3], planeMaterial) )
+            #         faceID = faceID + 1
+            #     else: # quads to tris to make sure all vertices of a plane are in the same plane in catt
+            #         fw("[ {0} {1} / {2} {3} {4} / {5} ]\r\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], planeMaterial) )
+            #         faceID = faceID + 1
+            #         fw("[ {0} {1} / {2} {3} {4} / {5} ]\r\n".format(faceID, planeName, face.vertices[2], face.vertices[3], face.vertices[0], planeMaterial) )
+            #         faceID = faceID + 1
+
+            # elif len(face.vertices) == 3:
+            #     fw("[ {0} {1} / {2} {3} {4} / {5} ]\r\n".format(faceID, planeName, face.vertices[0], face.vertices[1], face.vertices[2], planeMaterial) )
+            #     faceID = faceID + 1
+            # else:
+            #     print("error: exporter only supports tris and quads, face {} has {} vertices".format(faceID, len(face.vertices)))
+            #     return 1
 
     return 0
 
