@@ -97,14 +97,23 @@ class CattExportToolBar:
         row.label("1. Make Normals consistent")
         row = layout.row()
         row.label("2. Make Normals point inwards")
+        # row = layout.row()
+        # row.label("3. Apply scale (Ctrl+A)")
         row = layout.row()
-        row.label("3. Apply scale (Ctrl+A)")
-        row = layout.row()
-        row.label("4. Check all faces are flat, else triangulate mesh")
+        row.label("3. Check all faces are flat, else use triangulate option")
         # -----------------------------------------------------------
 
         col = layout.column(align=True)
         col.label('')
+        
+        rowsub = col.row(align=True)
+        rowsub.prop(catt_export, "triangulate_faces", text="Triangulate faces")
+        rowsub = col.row(align=True)
+        rowsub.prop(catt_export, "apply_modifiers", text="Apply modifiers")
+        
+        col = layout.column(align=True)
+        col.label('')
+
         col = layout.column()
         rowsub = col.row(align=True)
         rowsub.label("Export Path:")
@@ -112,8 +121,7 @@ class CattExportToolBar:
         # rowsub.prop(catt_export, "use_export_texture", text="", icon='FILE_IMAGE')
         rowsub = col.row()
         rowsub.prop(catt_export, "export_path", text="")
-        # rowsub = col.row(align=True)
-        # rowsub.prop(catt_export, "triangulate_faces", text="Triangulate At Export")
+        
 
         rowsub = col.row(align=True)
         rowsub.label("Exported .GEO file name:")
@@ -122,10 +130,9 @@ class CattExportToolBar:
 
         rowsub = col.row(align=True)
         # rowsub.prop(catt_export, "export_format", text="")
-        rowsub.operator("catt.export_room", text="Export MASTER.GEO", icon='EXPORT')
+        rowsub.operator("catt.export_room", text="Export active object", icon='EXPORT')
 
         CattExportToolBar.draw_report(layout, context)
-
 
         col = layout.column(align=True)
         col.label('')
@@ -227,7 +234,6 @@ class CattExportToolBar:
                     rowsub = layout.row(align=True)
                     rowsub.label("16kHz")
                     rowsub.prop(mat,'["dif_7"]', text="")
-
 
 
 class CattExportToolBarObject(Panel, CattExportToolBar):

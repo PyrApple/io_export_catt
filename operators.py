@@ -78,8 +78,7 @@ def catt_setMaterialProps(mat):
 def catt_checkForCattMaterial(obj):
     error = ''
     warning = ''
-    print(len(obj.data.materials))
-    print(obj.data.materials)
+    
     if len(obj.data.materials) == 0:
         error = 'Room must have at least one material'
     # when object has no material, somehow obj.data.materials still contains

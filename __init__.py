@@ -70,8 +70,13 @@ class CattExportSettings(PropertyGroup):
             default=False,
             )
     triangulate_faces = BoolProperty(
-            name="Triangulate Model",
+            name="Triangulate Faces",
             description='Transform quads to tri at export',
+            default=False,
+            )
+    apply_modifiers = BoolProperty(
+            name="Apply Modifiers",
+            description='Apply modifiers on object at export',
             default=False,
             )
 
