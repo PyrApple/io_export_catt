@@ -93,8 +93,9 @@ def catt_export_room(context):
 
         # write material(s)
         header = ""
+        r = 2 # round factor
         for mat in obj.data.materials:
-            tmp = "abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \r\n".format(mat.name,int(mat['abs_0']),int(mat['abs_1']),int(mat['abs_2']),int(mat['abs_3']),int(mat['abs_4']),int(mat['abs_5']),int(mat['abs_6']),int(mat['abs_7']),int(mat['dif_0']),int(mat['dif_1']),int(mat['dif_2']),int(mat['dif_3']),int(mat['dif_4']),int(mat['dif_5']),int(mat['dif_6']),int(mat['dif_7']),int(100*mat.diffuse_color[0]),int(100*mat.diffuse_color[1]),int(100*mat.diffuse_color[2]))
+            tmp = "abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \r\n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2]))
             header = header + tmp
         fw('%s\r\n' % header)
 
