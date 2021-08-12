@@ -19,10 +19,10 @@
 bl_info = {
     "name": "Catt-Acoustic Export Toolbox",
     "author": "David Poirier-Quinot",
-    "blender": (2, 75, 0),
-    "location": "3D View > Toolbox",
+    "blender": (2, 93, 0),
+    "location": "3D View > Sidebar",
     "description": "Utility for Catt-Acoustic model export",
-    "warning": "",
+    "doc_url": "",
     "support": 'COMMUNITY',
     "category": "Mesh"}
 
@@ -53,49 +53,60 @@ else:
 
 import math
 
-class CattExportSettings(PropertyGroup):
-    export_path = StringProperty(
-            name="Export Directory",
+class SceneProperties(PropertyGroup):
+    export_path: StringProperty(
+            name="Export directory",
             description="Path to directory where the files are created",
-            default="//", maxlen=1024, subtype="DIR_PATH",
+            default="//",
+            maxlen=1024,
+            subtype="DIR_PATH",
             )
-    master_file_name = StringProperty(
-            name="Master File Name",
+    master_file_name: StringProperty(
+            name="Master file name",
             description=".GEO file created at export",
-            default="MASTER", maxlen=1024,
+            default="MASTER",
+            maxlen=1024,
             )
-    display_normals = BoolProperty(
-            name="Display Normals",
+    display_normals: BoolProperty(
+            name="Display normals",
             description='Display model normals',
             default=False,
             )
-    triangulate_faces = BoolProperty(
-            name="Triangulate Faces",
+    triangulate_faces: BoolProperty(
+            name="Triangulate faces",
             description='Transform quads to tri at export',
             default=False,
             )
-    apply_modifiers = BoolProperty(
-            name="Apply Modifiers",
+    apply_modifiers: BoolProperty(
+            name="Apply modifiers",
             description='Apply modifiers on object at export',
             default=False,
             )
+    individual_geo_files: BoolProperty(
+            name="Create individual files",
+            description='Create one .geo file per collection',
+            default=False,
+            )
+
 
 classes = (
-    ui.CattExportToolBarObject,
-    ui.CattExportToolBarMesh,
-    operators.CattDefaultOperator,
+    SceneProperties,
+
+    ui.VIEW3D_PT_catt_instructions,
+    ui.VIEW3D_PT_catt_export,
+    ui.VIEW3D_PT_catt_materials,
+
     operators.CattExportRoom,
     operators.CattMaterialCreate,
     operators.CattMaterialConvert,
-    CattExportSettings,
-    )
+)
 
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.catt_export = PointerProperty(type=CattExportSettings)
+    bpy.types.Scene.catt_export = PointerProperty(type=SceneProperties)
 
 
 def unregister():

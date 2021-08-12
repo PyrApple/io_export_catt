@@ -18,134 +18,104 @@
 
 # Interface for this addon.
 
-import bmesh
 from bpy.types import Panel
+import bmesh
+
 from . import report
 
-class CattExportToolBar:
-    bl_label = "CattExport"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
 
-    _type_to_icon = {
-        bmesh.types.BMVert: 'VERTEXSEL',
-        bmesh.types.BMEdge: 'EDGESEL',
-        bmesh.types.BMFace: 'FACESEL',
-        }
+class View3DCattPanel:
+    bl_category = "Catt"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
 
     @classmethod
     def poll(cls, context):
+
         obj = context.active_object
-        return (obj and obj.type == 'MESH')
+        if( obj is None ): return True
+        if( obj.mode in {'OBJECT', 'EDIT'} ): return True
+        return False
+        # return obj is not None and obj.type == 'MESH' and obj.mode in {'OBJECT', 'EDIT'}
 
-    @staticmethod
-    def draw_report(layout, context):
-        """Display Reports"""
-        info = report.info()
-        if info:
-            obj = context.edit_object
 
-            layout.label("Output:")
-            box = layout.box()
-            col = box.column(align=False)
-            # box.alert = True
-            for i, (text, data) in enumerate(info):
-                if obj and data and data[1]:
-                    bm_type, bm_array = data
-                    col.operator("mesh.print3d_select_report",
-                                 text=text,
-                                 icon=CattExportToolBar._type_to_icon[bm_type]).index = i
-                else:
-                    col.label(text)
+class VIEW3D_PT_catt_instructions(View3DCattPanel, Panel):
+    bl_label = "Instructions"
 
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        catt_export = scene.catt_export
-        obj = context.object
-
+        # TODO: Automatize check with operators
+        # Meanwhile: simple stepwise description
         row = layout.row()
-        row.label("Compatibility Check:")
-
-        # TODO: Automatize check with operators --------------------
-        # col = layout.column(align=True)
-        # col.prop(catt_export, "display_normals", text="Display Room Normals")
-
-        #if (catt_export.display_normals == True):
-        # me = obj.data
-        # if obj.mode == 'EDIT':
-        #     me = obj.data
-        #     me.show_normal_face = catt_export.display_normals
-        #     print('Object EDITE')
-        # if context.mode == 'EDIT_MESH':
-        #     print('CONTEXT EDITE')
-            # obj.show_normal_face = catt_export.display_normals
-
-        # scene.tool_settings.normal_size = 1.0
-
-        # rowsub = col.row(align=True)
-        # rowsub.operator("catt.not_implemented", text="Make Consistent")
-        # rowsub.operator("catt.not_implemented", text="Flip Normals")
-        # col = layout.column(align=True)
-        # col.operator("catt.not_implemented", text="Check Flat Surfaces")
-        # col = layout.column(align=True)
-        # col.operator("catt.not_implemented", text="Apply Scale")
-        # -----------------------------------------------------------
-        # Meanwhile: simple stepwise description --------------------
+        row.label(text="- Make Normals consistent")
         row = layout.row()
-        row.label("1. Make Normals consistent")
-        row = layout.row()
-        row.label("2. Make Normals point inwards")
+        row.label(text="- Make Normals point inwards")
         # row = layout.row()
         # row.label("3. Apply scale (Ctrl+A)")
         row = layout.row()
-        row.label("3. Check all faces are flat, else use triangulate option")
-        # -----------------------------------------------------------
+        row.label(text="- Check all faces are flat, else use triangulate option")
+        row = layout.row()
+        row.label(text="- Only supports single depth collections")
+        row = layout.row()
+        row.label(text="- Add * to the end of an object name to flag it for automatic edge scattering in Catt")
+        row = layout.row()
+        row.label(text="- Add * to the end of a collection name to flag all its objects for automatic edge scattering in Catt")
+
+
+class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
+    bl_label = "Export"
+
+    def draw(self, context):
+
+        layout = self.layout
+        catt_export = context.scene.catt_export
 
         col = layout.column(align=True)
-        col.label('')
-        
+
         rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "triangulate_faces", text="Triangulate faces")
+        rowsub.prop(catt_export, "triangulate_faces")
+
         rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "apply_modifiers", text="Apply modifiers")
-        
-        col = layout.column(align=True)
-        col.label('')
+        rowsub.prop(catt_export, "apply_modifiers")
+
+        rowsub = col.row(align=True)
+        rowsub.prop(catt_export, "individual_geo_files")
 
         col = layout.column()
         rowsub = col.row(align=True)
-        rowsub.label("Export Path:")
+        rowsub.label(text="Export Path:")
         # rowsub.prop(catt_export, "use_apply_scale", text="", icon='MAN_SCALE')
-        # rowsub.prop(catt_export, "use_export_texture", text="", icon='FILE_IMAGE')
         rowsub = col.row()
         rowsub.prop(catt_export, "export_path", text="")
-        
+
 
         rowsub = col.row(align=True)
-        rowsub.label("Exported .GEO file name:")
+        rowsub.label(text="Exported .GEO file name:")
         rowsub = col.row()
         rowsub.prop(catt_export, "master_file_name", text="")
 
         rowsub = col.row(align=True)
         # rowsub.prop(catt_export, "export_format", text="")
-        rowsub.operator("catt.export_room", text="Export active object", icon='EXPORT')
+        rowsub.operator("catt.export_room", text="EXPORT", icon='EXPORT')
 
-        CattExportToolBar.draw_report(layout, context)
 
-        col = layout.column(align=True)
-        col.label('')
-        col = layout.column(align=True)
-        col.label('Custom Material:')
+class VIEW3D_PT_catt_materials(View3DCattPanel, Panel):
+    bl_label = "Materials"
 
-        # bail on wrong display mode
-        if context.scene.game_settings.material_mode != 'GLSL':
-            row = layout.row()
-            row.label('CattMaterial requires GLSL mode', icon='ERROR')
-            row = layout.row()
-            row.prop(context.scene.game_settings, 'material_mode', text='')
-            return
+    def draw(self, context):
+        layout = self.layout
+
+        catt_export = context.scene.catt_export
+        obj = context.object
+
+        # # bail on wrong display mode
+        # if context.scene.game_settings.material_mode != 'GLSL':
+        #     row = layout.row()
+        #     row.label(text="CattMaterial requires GLSL mode", icon='ERROR')
+        #     row = layout.row()
+        #     row.prop(context.scene.game_settings, 'material_mode', text='')
+        #     return
 
         # bail on no object (We don't want to use poll because that hides the panel)
         if not obj:
@@ -171,76 +141,66 @@ class CattExportToolBar:
             if mat:
                 if 'cattMaterial' not in mat:
                     # if not signaled_as_non_catt_material:
-                    row.label('Not a CATT Material', icon='ERROR')
+                    row.label(text="Not a CATT Material", icon='ERROR')
                     row = layout.row()
                     row.operator("catt.convert_to_catt_material", text="Convert to Catt Material")
                         # signaled_as_non_catt_material = True
                 else:
 
                     row = layout.row()
-                    row.label("Absorption:")
+                    row.label(text="Absorption:")
                     # col = layout.column(align=True)
                     rowsub = layout.row(align=True)
-                    rowsub.label("125Hz")
+                    rowsub.label(text="125Hz")
                     rowsub.prop(mat,'["abs_0"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("250Hz")
+                    rowsub.label(text="250Hz")
                     rowsub.prop(mat,'["abs_1"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("500Hz")
+                    rowsub.label(text="500Hz")
                     rowsub.prop(mat,'["abs_2"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("1kHz")
+                    rowsub.label(text="1kHz")
                     rowsub.prop(mat,'["abs_3"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("2kHz")
+                    rowsub.label(text="2kHz")
                     rowsub.prop(mat,'["abs_4"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("4kHz")
+                    rowsub.label(text="4kHz")
                     rowsub.prop(mat,'["abs_5"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("8kHz")
+                    rowsub.label(text="8kHz")
                     rowsub.prop(mat,'["abs_6"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("16kHz")
+                    rowsub.label(text="16kHz")
                     rowsub.prop(mat,'["abs_7"]', text="")
 
                     row = layout.row(align=True)
-                    row.label('')
+                    row.label(text="")
                     row = layout.row()
-                    row.label("Diffraction:")
+                    row.label(text="Diffraction:")
                     # col = layout.column(align=True)
                     rowsub = layout.row(align=True)
-                    rowsub.label("125Hz")
+                    rowsub.label(text="125Hz")
                     rowsub.prop(mat,'["dif_0"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("250Hz")
+                    rowsub.label(text="250Hz")
                     rowsub.prop(mat,'["dif_1"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("500Hz")
+                    rowsub.label(text="500Hz")
                     rowsub.prop(mat,'["dif_2"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("1kHz")
+                    rowsub.label(text="1kHz")
                     rowsub.prop(mat,'["dif_3"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("2kHz")
+                    rowsub.label(text="2kHz")
                     rowsub.prop(mat,'["dif_4"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("4kHz")
+                    rowsub.label(text="4kHz")
                     rowsub.prop(mat,'["dif_5"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("8kHz")
+                    rowsub.label(text="8kHz")
                     rowsub.prop(mat,'["dif_6"]', text="")
                     rowsub = layout.row(align=True)
-                    rowsub.label("16kHz")
+                    rowsub.label(text="16kHz")
                     rowsub.prop(mat,'["dif_7"]', text="")
-
-
-class CattExportToolBarObject(Panel, CattExportToolBar):
-    bl_category = "CATT Export"
-    bl_context = "objectmode"
-
-# So we can have a panel in both object mode and editmode
-class CattExportToolBarMesh(Panel, CattExportToolBar):
-    bl_category = "CATT Export"
-    bl_context = "mesh_edit"
