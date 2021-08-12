@@ -21,9 +21,6 @@
 from bpy.types import Panel
 import bmesh
 
-from . import report
-
-
 class View3DCattPanel:
     bl_category = "Catt"
     bl_space_type = 'VIEW_3D'
