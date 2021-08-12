@@ -1,7 +1,13 @@
 # CATT-Acoustic Export Utility
 
-
 Catt-Acousitic model export Addon for Blender
+
+
+## How to use
+
+- Add * to object name end to flag its faces for auto edge scattering
+- Add * to object name end to flag its faces for auto edge scattering
+
 
 ## Using exported model in CATT-Acoustic
 
@@ -18,7 +24,6 @@ Catt only accepts flat faces. Either use the triangulate option of the add-on to
 
 
 ## Export from Catt to Blender
-
 
 ### export WRL from CATT
 
@@ -37,6 +42,7 @@ changes to operate on imported WRL in blender to get a model with the same coord
 
 
 note: the tricky thing about solving that problem is that it seems to come from the WRL export/import process. A scene created in Blender, and exported to CATT seems to have correct transform (for all room, listeners, sources). The re-export from CATT -> WRL -> Blender however creates this weird change.
+
 
 ## Todo
 

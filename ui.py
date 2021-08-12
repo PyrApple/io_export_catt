@@ -40,7 +40,7 @@ class View3DCattPanel:
 
 
 class VIEW3D_PT_catt_instructions(View3DCattPanel, Panel):
-    bl_label = "Instructions"
+    bl_label = "How to use"
 
     def draw(self, context):
         layout = self.layout
@@ -48,19 +48,15 @@ class VIEW3D_PT_catt_instructions(View3DCattPanel, Panel):
         # TODO: Automatize check with operators
         # Meanwhile: simple stepwise description
         row = layout.row()
-        row.label(text="- Make Normals consistent")
+        row.label(text="Make Normals consistent")
         row = layout.row()
-        row.label(text="- Make Normals point inwards")
+        row.label(text="Make Normals point inward for room, outward for objects")
         # row = layout.row()
         # row.label("3. Apply scale (Ctrl+A)")
         row = layout.row()
-        row.label(text="- Check all faces are flat, else use triangulate option")
+        row.label(text="Check all faces are flat, else use triangulate option")
         row = layout.row()
-        row.label(text="- Only supports single depth collections")
-        row = layout.row()
-        row.label(text="- Add * to the end of an object name to flag it for automatic edge scattering in Catt")
-        row = layout.row()
-        row.label(text="- Add * to the end of a collection name to flag all its objects for automatic edge scattering in Catt")
+        row.label(text="Only supports single depth collections")
 
 
 class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
