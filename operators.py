@@ -259,29 +259,29 @@ class CattExportRoom(Operator):
 
 
         # open file
-        with open(filePath, 'w') as data:
+        with open(filePath, 'w', newline='\r\n') as data:
 
             fw = data.write
 
             # Catt related header
             header = ";" + filePath
-            fw('%s\r\n' % header)
+            fw('%s\n' % header)
             header = ";PROJECT="
-            fw('%s\r\n\r\n' % header)
+            fw('%s\n\n' % header)
 
             # Blender Add-on related header
             header = ";FILE GENERATED VIA BLENDER CATT EXPORT ADD-ON"
-            fw('%s\r\n' % header)
+            fw('%s\n' % header)
             blendFilename = os.path.splitext(os.path.split(bpy.data.filepath)[1])[0]
             if not blendFilename:
                 blendFilename = 'floating file (unsaved)'
             else:
                 blendFilename = blendFilename + ".blend"
             header = ";BASED ON .BLEND FILE: " + blendFilename
-            fw('%s\r\n\r\n' % header)
+            fw('%s\n\n' % header)
 
             for collectionName in collection_names:
-                fw('import %s.GEO\r\n' % self.removeTrailingAsterix(collectionName))
+                fw('INCLUDE %s\n' % self.removeTrailingAsterix(collectionName))
 
 
     # return a list of objects in collections
@@ -328,46 +328,46 @@ class CattExportRoom(Operator):
 
 
         # open file
-        with open(filePath, 'w') as data:
+        with open(filePath, 'w', newline='\r\n') as data:
 
             fw = data.write
 
             # Catt related header
             header = ";" + filePath
-            fw('%s\r\n' % header)
+            fw('%s\n' % header)
             header = ";PROJECT="
-            fw('%s\r\n\r\n' % header)
+            fw('%s\n\n' % header)
 
             # Blender Add-on related header
             header = ";FILE GENERATED VIA BLENDER CATT EXPORT ADD-ON"
-            fw('%s\r\n' % header)
+            fw('%s\n' % header)
             blendFilename = os.path.splitext(os.path.split(bpy.data.filepath)[1])[0]
             if not blendFilename:
                 blendFilename = 'floating file (unsaved)'
             else:
                 blendFilename = blendFilename + ".blend"
             header = ";BASED ON .BLEND FILE: " + blendFilename
-            fw('%s\r\n\r\n' % header)
+            fw('%s\n\n' % header)
 
             # write material(s)
             header = ""
             r = 1 # round factor
             for mat in materials.values():
-                tmp = "abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \r\n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2]))
+                tmp = "abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2]))
                 header = header + tmp
-            fw('%s\r\n' % header)
+            fw('%s\n' % header)
 
 
             # write corners (vertices)
             header = "CORNERS"
-            fw('%s\r\n\r\n' % header)
+            fw('%s\n\n' % header)
             idOffset = 0
             vertIdOffsets = dict()
             for objName in bmeshes:
                 bm = bmeshes[objName]
                 for vertice in bm.verts:
                     verticeId = vertice.index + 1 + idOffset # as catt expects ids starting from 1
-                    fw("{0} {1:.2f} {2:.2f} {3:.2f} \r\n".format(verticeId, vertice.co[0], vertice.co[1], vertice.co[2]) )
+                    fw("{0} {1:.2f} {2:.2f} {3:.2f} \n".format(verticeId, vertice.co[0], vertice.co[1], vertice.co[2]) )
 
                 vertIdOffsets[objName] = idOffset
                 idOffset += len(bm.verts)
@@ -377,7 +377,8 @@ class CattExportRoom(Operator):
 
             # write planes (faces)
             header = "PLANES"
-            fw('\r\n%s\r\n\r\n' % header)
+            fw('\n%s\n\n' % header)
+            idOffset = 0
             for objName in bmeshes:
                 bm = bmeshes[objName]
                 obj = bpy.data.objects[objName]
@@ -402,7 +403,9 @@ class CattExportRoom(Operator):
 
                     # write face line
                     planeName = 'wall' # default plane name set in Catt
-                    fw("[ {0} {1} / {2} / {3}{4} ]\r\n".format(face.index + 1, 'wall', vertListStr, matName, edgeScatteringStr) )
+                    fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + 1 + idOffset, 'wall', vertListStr, matName, edgeScatteringStr) )
+
+                idOffset += len(bm.faces)
 
         print('Catt file exported at {0}'.format(filePath))
         return 0
@@ -444,10 +447,3 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
         bmesh.ops.triangulate(bm, faces=bm.faces)
 
     return bm
-
-
-
-
-
-
-
