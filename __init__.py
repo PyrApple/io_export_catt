@@ -17,11 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Catt-Acoustic Export Toolbox",
+    "name": "CATT-Acoustic export utility",
     "author": "David Poirier-Quinot",
     "blender": (2, 93, 0),
     "location": "3D View > Sidebar",
-    "description": "Utility for Catt-Acoustic model export",
+    "description": "Utility for exporting Blender scenes to CATT-Acoustic GEO files",
     "doc_url": "",
     "support": 'COMMUNITY',
     "category": "Mesh"}
@@ -30,15 +30,16 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(operators)
+
 else:
     import bpy
     from bpy.props import (
             StringProperty,
             BoolProperty,
-            IntProperty,
-            FloatProperty,
-            FloatVectorProperty,
-            EnumProperty,
+            # IntProperty,
+            # FloatProperty,
+            # FloatVectorProperty,
+            # EnumProperty,
             PointerProperty,
             )
     from bpy.types import (
@@ -51,9 +52,9 @@ else:
             operators,
             )
 
-import math
 
 class SceneProperties(PropertyGroup):
+
     export_path: StringProperty(
             name="Export directory",
             description="Path to directory where the files are created",
@@ -82,23 +83,19 @@ class SceneProperties(PropertyGroup):
             description='Apply modifiers on object at export',
             default=False,
             )
-    individual_geo_files: BoolProperty(
-            name="Create individual files",
-            description='Create one .geo file per collection',
-            default=False,
-            )
 
 
 classes = (
     SceneProperties,
 
-    ui.VIEW3D_PT_catt_instructions,
-    ui.VIEW3D_PT_catt_export,
-    ui.VIEW3D_PT_catt_materials,
+    ui.PanelInstructions,
+    ui.PanelExport,
+    ui.PanelMaterial,
 
     operators.CattExportRoom,
     operators.CattMaterialCreate,
     operators.CattMaterialConvert,
+    operators.CattMaterialRetroCompatibility,
 )
 
 

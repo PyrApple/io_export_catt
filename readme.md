@@ -48,3 +48,4 @@ note: the tricky thing about solving that problem is that it seems to come from 
 ## Todo
 
 - Impl.: Only the first 15 caracters of material name are taken into acount in CATT
+- Explain the problem with inter-sub files id overlap in planes in CATT and why we went for merge all into single object in blender export

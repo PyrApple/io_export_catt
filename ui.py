@@ -19,52 +19,71 @@
 # Interface for this addon.
 
 from bpy.types import Panel
-import bmesh
 
-class View3DCattPanel:
+# common panel
+class PanelCommon:
+
+    # init locals
     bl_category = "Catt"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
 
+    # when to display the addon panel
     @classmethod
     def poll(cls, context):
-
-        obj = context.active_object
-        if( obj is None ): return True
-        if( obj.mode in {'OBJECT', 'EDIT'} ): return True
-        return False
-        # return obj is not None and obj.type == 'MESH' and obj.mode in {'OBJECT', 'EDIT'}
+        return True
 
 
-class VIEW3D_PT_catt_instructions(View3DCattPanel, Panel):
+class PanelInstructions(PanelCommon, Panel):
+
+    # title
     bl_label = "How to use"
 
     def draw(self, context):
+
+        # init locals
         layout = self.layout
 
-        # TODO: Automatize check with operators
-        # Meanwhile: simple stepwise description
         row = layout.row()
-        row.label(text="Make Normals consistent")
+        row.label(text="Make normals consistent")
+
         row = layout.row()
-        row.label(text="Make Normals point inward for room, outward for objects")
-        # row = layout.row()
-        # row.label("3. Apply scale (Ctrl+A)")
+        row.label(text="Make normals point inward for room, outward for objects")
+
         row = layout.row()
         row.label(text="Check all faces are flat, else use triangulate option")
+
         row = layout.row()
         row.label(text="Only supports single depth collections")
 
 
-class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
+class PanelExport(PanelCommon, Panel):
+
+    # title
     bl_label = "Export"
 
     def draw(self, context):
 
+        # init locals
         layout = self.layout
         catt_export = context.scene.catt_export
 
         col = layout.column(align=True)
+
+        # rowsub = col.row(align=True)
+        # rowsub.label(text="Export Path:")
+
+        rowsub = col.row()
+        rowsub.prop(catt_export, "export_path", text="Path")
+
+        # rowsub = col.row(align=True)
+        # rowsub.label(text="Exported .GEO file name:")
+
+        rowsub = col.row()
+        rowsub.prop(catt_export, "master_file_name", text="Name")
+
+        rowsub = col.row()
+        rowsub.label(text="")
 
         rowsub = col.row(align=True)
         rowsub.prop(catt_export, "triangulate_faces")
@@ -72,128 +91,84 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         rowsub = col.row(align=True)
         rowsub.prop(catt_export, "apply_modifiers")
 
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "individual_geo_files")
-
-        col = layout.column()
-        rowsub = col.row(align=True)
-        rowsub.label(text="Export Path:")
-        # rowsub.prop(catt_export, "use_apply_scale", text="", icon='MAN_SCALE')
         rowsub = col.row()
-        rowsub.prop(catt_export, "export_path", text="")
+        rowsub.label(text="")
 
-
-        rowsub = col.row(align=True)
-        rowsub.label(text="Exported .GEO file name:")
         rowsub = col.row()
-        rowsub.prop(catt_export, "master_file_name", text="")
+        rowsub.label(text="Export visible collections:")
 
         rowsub = col.row(align=True)
-        # rowsub.prop(catt_export, "export_format", text="")
         rowsub.operator("catt.export_room", text="EXPORT", icon='EXPORT')
 
 
-class VIEW3D_PT_catt_materials(View3DCattPanel, Panel):
-    bl_label = "Materials"
+class PanelMaterial(PanelCommon, Panel):
+
+    # title
+    bl_label = "Material"
 
     def draw(self, context):
-        layout = self.layout
 
+        # init locals
+        layout = self.layout
         catt_export = context.scene.catt_export
         obj = context.object
 
-        # # bail on wrong display mode
-        # if context.scene.game_settings.material_mode != 'GLSL':
-        #     row = layout.row()
-        #     row.label(text="CattMaterial requires GLSL mode", icon='ERROR')
-        #     row = layout.row()
-        #     row.prop(context.scene.game_settings, 'material_mode', text='')
-        #     return
-
-        # bail on no object (We don't want to use poll because that hides the panel)
-        if not obj:
-            return
+        # discard if no object selected
+        if not obj: return
 
         # material datablock manager
         row = layout.row()
         layout.template_ID_preview(obj, "active_material", new="catt.matcreate")
 
-        # material editor
-        row = layout.row()
-        # signaled_as_non_catt_material = False
-
-        # for materialSlot in context.active_object.material_slots:
-
+        # if object has materials
         if len(context.active_object.material_slots) > 0:
 
-            # mat = materialSlot.material
+            # discard if object has no active material
             mat = obj.active_material
-            # print(mat.name)
+            if not mat: return
 
-            # bail code
-            if mat:
-                if 'cattMaterial' not in mat:
-                    # if not signaled_as_non_catt_material:
-                    row.label(text="Not a CATT Material", icon='ERROR')
-                    row = layout.row()
-                    row.operator("catt.convert_to_catt_material", text="Convert to Catt Material")
-                        # signaled_as_non_catt_material = True
-                else:
+            # retro compatibility
+            if 'cattMaterial' in mat:
+                row = layout.row()
+                row.label(text="Old CATT material detected", icon='ERROR')
+                row = layout.row()
+                row.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
+                return
 
-                    row = layout.row()
-                    row.label(text="Absorption:")
-                    # col = layout.column(align=True)
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="125Hz")
-                    rowsub.prop(mat,'["abs_0"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="250Hz")
-                    rowsub.prop(mat,'["abs_1"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="500Hz")
-                    rowsub.prop(mat,'["abs_2"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="1kHz")
-                    rowsub.prop(mat,'["abs_3"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="2kHz")
-                    rowsub.prop(mat,'["abs_4"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="4kHz")
-                    rowsub.prop(mat,'["abs_5"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="8kHz")
-                    rowsub.prop(mat,'["abs_6"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="16kHz")
-                    rowsub.prop(mat,'["abs_7"]', text="")
+            # material is not a catt material
+            if 'is_catt_material' not in mat:
 
-                    row = layout.row(align=True)
-                    row.label(text="")
-                    row = layout.row()
-                    row.label(text="Diffraction:")
-                    # col = layout.column(align=True)
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="125Hz")
-                    rowsub.prop(mat,'["dif_0"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="250Hz")
-                    rowsub.prop(mat,'["dif_1"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="500Hz")
-                    rowsub.prop(mat,'["dif_2"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="1kHz")
-                    rowsub.prop(mat,'["dif_3"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="2kHz")
-                    rowsub.prop(mat,'["dif_4"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="4kHz")
-                    rowsub.prop(mat,'["dif_5"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="8kHz")
-                    rowsub.prop(mat,'["dif_6"]', text="")
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text="16kHz")
-                    rowsub.prop(mat,'["dif_7"]', text="")
+                row = layout.row()
+                row.label(text="Not a CATT material", icon='ERROR')
+
+                row = layout.row()
+                row.operator("catt.convert_to_catt_material", text="Convert to CATT material")
+
+                return
+
+            # init list of freqs
+            freqs = ["125Hz", "250Hz", "500Hz", "1kHz", "2kHz", "4kHz", "8kHz", "16kHz"]
+
+            # define absorption coefficients
+            row = layout.row()
+            row.label(text="Absorption")
+
+            # loop over frequencies
+            for iFreq in range(0, len(freqs)):
+                rowsub = layout.row(align=True)
+                rowsub.label(text=freqs[iFreq])
+                rowsub.prop(mat,'["abs_{0}"]'.format(iFreq), text="")
+
+            # empty space
+            row = layout.row(align=True)
+            row.label(text="")
+
+            # define diffraction coefficients
+            row = layout.row()
+            row.label(text="Diffraction")
+
+            # loop over frequencies
+            for iFreq in range(0, len(freqs)):
+                rowsub = layout.row(align=True)
+                rowsub.label(text=freqs[iFreq])
+                rowsub.prop(mat,'["dif_{0}"]'.format(iFreq), text="")
