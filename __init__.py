@@ -92,8 +92,7 @@ classes = (
     ui.PanelExport,
     ui.PanelMaterial,
 
-    operators.CattExportRoom,
-    operators.CattMaterialCreate,
+    operators.CattExport,
     operators.CattMaterialConvert,
     operators.CattMaterialRetroCompatibility,
 )

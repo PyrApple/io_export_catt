@@ -20,26 +20,28 @@
 
 from bpy.types import Panel
 
-# common panel
 class PanelCommon:
+    """ common panel """
 
     # init locals
     bl_category = "CATT"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
 
-    # when to display the addon panel
     @classmethod
     def poll(cls, context):
+        """ define context when to display the addon panel """
         return True
 
 
 class PanelInstructions(PanelCommon, Panel):
+    """ panel instructions """
 
     # title
     bl_label = "How to use"
 
     def draw(self, context):
+        """ method called upon ui draw """
 
         # init locals
         layout = self.layout
@@ -58,11 +60,13 @@ class PanelInstructions(PanelCommon, Panel):
 
 
 class PanelExport(PanelCommon, Panel):
+    """ panel export """
 
     # title
     bl_label = "Export"
 
     def draw(self, context):
+        """ method called upon ui draw """
 
         # init locals
         layout = self.layout
@@ -98,23 +102,25 @@ class PanelExport(PanelCommon, Panel):
         rowsub.label(text="Export visible collections:")
 
         rowsub = col.row(align=True)
-        rowsub.operator("catt.export_room", text="EXPORT", icon='EXPORT')
+        rowsub.operator("catt.export", text="EXPORT", icon='EXPORT')
 
 
 class PanelMaterial(PanelCommon, Panel):
+    """ panel material """
 
     # title
     bl_label = "Material"
 
     def draw(self, context):
+        """ method called upon ui draw """
 
         # init locals
         layout = self.layout
-        catt_export = context.scene.catt_export
         obj = context.object
 
         # discard if no object selected
-        if not obj: return
+        if not obj:
+            return
 
         # material datablock manager
         row = layout.row()
@@ -125,7 +131,8 @@ class PanelMaterial(PanelCommon, Panel):
 
             # discard if object has no active material
             mat = obj.active_material
-            if not mat: return
+            if not mat:
+                return
 
             # retro compatibility
             if 'cattMaterial' in mat:
@@ -154,10 +161,10 @@ class PanelMaterial(PanelCommon, Panel):
             row.label(text="Absorption")
 
             # loop over frequencies
-            for iFreq in range(0, len(freqs)):
+            for i_freq, freq in enumerate(freqs):
                 rowsub = layout.row(align=True)
-                rowsub.label(text=freqs[iFreq])
-                rowsub.prop(mat,'["abs_{0}"]'.format(iFreq), text="")
+                rowsub.label(text=freq)
+                rowsub.prop(mat,'["abs_{0}"]'.format(i_freq), text="")
 
             # empty space
             row = layout.row(align=True)
@@ -168,7 +175,7 @@ class PanelMaterial(PanelCommon, Panel):
             row.label(text="Diffraction")
 
             # loop over frequencies
-            for iFreq in range(0, len(freqs)):
+            for i_freq, freq in enumerate(freqs):
                 rowsub = layout.row(align=True)
-                rowsub.label(text=freqs[iFreq])
-                rowsub.prop(mat,'["dif_{0}"]'.format(iFreq), text="")
+                rowsub.label(text=freq)
+                rowsub.prop(mat,'["dif_{0}"]'.format(i_freq), text="")

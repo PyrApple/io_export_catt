@@ -22,17 +22,17 @@ import os
 import bpy
 import bmesh
 from bpy.types import Operator
-from bpy.props import StringProperty
 
 
-# convert material to catt material
 class CattMaterialConvert(Operator):
+    """ operator used to convert material to catt material """
 
     # init locals
     bl_idname = "catt.convert_to_catt_material"
     bl_label = "Convert to Catt Material"
 
     def execute(self, context):
+        """ method called from ui """
 
         # get active material
         mat = context.object.active_material
@@ -41,10 +41,10 @@ class CattMaterialConvert(Operator):
         mat['is_catt_material'] = True
 
         # loop over frequency bands
-        nFreqBands = 8
-        for iFreq in range(nFreqBands):
-            mat['abs_{0}'.format(iFreq)] = 40.0
-            mat['dif_{0}'.format(iFreq)] = 50.0
+        num_freq_bands = 8
+        for i_freq in range(num_freq_bands):
+            mat['abs_{0}'.format(i_freq)] = 40.0
+            mat['dif_{0}'.format(i_freq)] = 50.0
 
         # disable use nodes (easier to access diffuse color that way)
         mat.use_nodes = False
@@ -52,13 +52,14 @@ class CattMaterialConvert(Operator):
         return {'FINISHED'}
 
 
-# convert catt material from previous version of the addon to current
 class CattMaterialRetroCompatibility(Operator):
+    """ operator used to convert catt material from previous version of the addon to current """
 
     bl_idname = "catt.convert_catt_material_from_old_to_new"
     bl_label = "Convert to new Catt Material"
 
     def execute(self, context):
+        """ method called from ui """
 
         obj = context.object
         mat = obj.active_material
@@ -71,14 +72,15 @@ class CattMaterialRetroCompatibility(Operator):
         return {'FINISHED'}
 
 
-# export active object as catt room
-class CattExportRoom(Operator):
+class CattExport(Operator):
+    """ operator used to export a scene to catt """
 
     # init locals
-    bl_idname = "catt.export_room"
+    bl_idname = "catt.export"
     bl_label = "Catt Export"
 
     def execute(self, context):
+        """ method called from ui """
 
         # init local
         catt_export = context.scene.catt_export
@@ -114,16 +116,8 @@ class CattExportRoom(Operator):
         return {'FINISHED'}
 
 
-    # remove * from collection name if need be
-    def remove_trailing_asterix(self, name):
-
-        if( len(name) == 0 or name[-1] != '*'):
-            return name
-        else:
-            return name[0:len(name) - 1]
-
-
     def export_objects(self, file_path, objects):
+        """ export list of objects to catt geo file """
 
         # init locals
         catt_export = bpy.context.scene.catt_export
@@ -164,7 +158,7 @@ class CattExportRoom(Operator):
             bm.free()
 
         # remove duplicates
-        bmesh.ops.remove_doubles(bm_concat, verts=bm_concat.verts, dist=0.001)
+        bmesh.ops.remove_doubles(bm_concat, verts = bm_concat.verts, dist = 1e-7)
 
         # required lookup table rebuild
         # warning: may temper with the ordering of bmesh faces and its matching with built list bmesh_faces_info
@@ -192,36 +186,35 @@ class CattExportRoom(Operator):
 
             # faces
             fw('\nPLANES\n\n')
-            for iFace in range(len(bm_concat.faces)):
+            for i_face, face in enumerate(bm_concat.faces):
 
                 # init locals
-                face = bm_concat.faces[iFace]
-                collection_name = bmesh_faces_info[iFace]['collection_name']
-                object_name = bmesh_faces_info[iFace]['object_name']
-                material_name = bmesh_faces_info[iFace]['material_name']
+                collection_name = bmesh_faces_info[i_face]['collection_name']
+                object_name = bmesh_faces_info[i_face]['object_name']
+                material_name = bmesh_faces_info[i_face]['material_name']
 
                 # auto edge scattering if collection or object names end with '*'
-                edgeScatteringStr = ''
+                edge_scattering_str = ''
                 if( len(collection_name) > 0 and collection_name[-1] == '*' ):
-                    edgeScatteringStr = '*'
-                    collection_name = self.remove_trailing_asterix(collection_name)
-                if( object_name[-1] == '*' ):
-                    object_name = self.remove_trailing_asterix(object_name)
-                    edgeScatteringStr = '*'
+                    edge_scattering_str = '*'
+                    collection_name = collection_name.rstrip('*')
+                if object_name[-1] == '*':
+                    object_name = object_name.rstrip('*')
+                    edge_scattering_str = '*'
 
                 # shape face name from collection and object names
                 # 'Master Collection' is the name of blender root collection
-                if collection_name == '' or collection_name == 'Master Collection':
-                    faceName = object_name
+                if collection_name in ('', 'Master Collection'):
+                    face_name = object_name
                 else:
-                    faceName = collection_name + '-' + object_name
+                    face_name = collection_name + '-' + object_name
 
                 # get face vertice ids
-                vertList = [vertice.index + 1 for vertice in face.verts]
-                vertListStr = ' '.join(map(str, vertList))
+                vertices_list = [vertice.index + 1 for vertice in face.verts]
+                vertices_list_str = ' '.join(map(str, vertices_list))
 
                 # write face line
-                fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + 1, faceName, vertListStr, material_name, edgeScatteringStr) )
+                fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + 1, face_name, vertices_list_str, material_name, edge_scattering_str) )
 
         # free bmesh
         bm_concat.free()
@@ -234,12 +227,11 @@ class CattExportRoom(Operator):
 # method from the Print3D add-on: create a bmesh from an object
 # (for triangulation, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
-    """Returns a transformed, triangulated copy of the mesh"""
+    """ returns a transformed, triangulated copy of the mesh """
 
     assert obj.type == 'MESH'
 
     if apply_modifiers and obj.modifiers:
-        import bpy
         depsgraph = bpy.context.evaluated_depsgraph_get()
         obj_eval = obj.evaluated_get(depsgraph)
         me = obj_eval.to_mesh()
@@ -254,9 +246,6 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
         else:
             bm = bmesh.new()
             bm.from_mesh(me)
-
-    # TODO. remove all customdata layers.
-    # would save ram
 
     if transform:
         bm.transform(obj.matrix_world)

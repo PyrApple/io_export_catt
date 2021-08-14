@@ -23,6 +23,15 @@ Catt only accepts flat faces. Either use the triangulate option of the add-on to
     – and/or look in to properties menu (N key) in edit mode, and use "mesh analysis" > type: distortion, it will let you see what's wrong
     - and/or use the 3d print add-on, set a low angle into "distortion" and press the button: it will let you see what's wrong
 
+## Show faces id in blender viewport
+
+https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id
+
+- Click Edit > Preferences...
+- In the Display panel of the Interface tab, tick Developer Extras
+- or type bpy.context.preferences.view.show_developer_ui = True into the Python console.
+- Open the Overlays popover in the 3D View Overlays popover
+- Look for the label Developer and tick the checkbox Indices
 
 ## Export from Catt to Blender
 
