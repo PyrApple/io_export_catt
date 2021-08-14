@@ -7,7 +7,7 @@ Catt-Acousitic model export Addon for Blender
 
 - All enabled (not excluded from view layer) collections will be included in the export
 - Add * to object name end to flag its faces for auto edge scattering
-- Add * to object name end to flag its faces for auto edge scattering
+- Add * to collection name end to flag all its child objects faces for auto edge scattering (only work on 1st level children)
 
 
 ## Using exported model in CATT-Acoustic

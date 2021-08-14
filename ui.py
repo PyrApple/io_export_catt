@@ -20,7 +20,7 @@
 
 from bpy.types import Panel
 
-class PanelCommon:
+class View3DCattPanel:
     """ common panel """
 
     # init locals
@@ -34,11 +34,11 @@ class PanelCommon:
         return True
 
 
-class PanelInstructions(PanelCommon, Panel):
+class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
     """ panel instructions """
 
     # title
-    bl_label = "How to use"
+    bl_label = "Checks"
 
     def draw(self, context):
         """ method called upon ui draw """
@@ -55,11 +55,8 @@ class PanelInstructions(PanelCommon, Panel):
         row = layout.row()
         row.label(text="Check all faces are flat, else use triangulate option")
 
-        row = layout.row()
-        row.label(text="Only supports single depth collections")
 
-
-class PanelExport(PanelCommon, Panel):
+class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
     """ panel export """
 
     # title
@@ -105,7 +102,7 @@ class PanelExport(PanelCommon, Panel):
         rowsub.operator("catt.export", text="EXPORT", icon='EXPORT')
 
 
-class PanelMaterial(PanelCommon, Panel):
+class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
     """ panel material """
 
     # title
@@ -179,3 +176,4 @@ class PanelMaterial(PanelCommon, Panel):
                 rowsub = layout.row(align=True)
                 rowsub.label(text=freq)
                 rowsub.prop(mat,'["dif_{0}"]'.format(i_freq), text="")
+

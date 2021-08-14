@@ -24,7 +24,7 @@ import bmesh
 from bpy.types import Operator
 
 
-class CattMaterialConvert(Operator):
+class MESH_OT_catt_material_convert(Operator):
     """ operator used to convert material to catt material """
 
     # init locals
@@ -52,7 +52,7 @@ class CattMaterialConvert(Operator):
         return {'FINISHED'}
 
 
-class CattMaterialRetroCompatibility(Operator):
+class MESH_OT_catt_material_retro_compat(Operator):
     """ operator used to convert catt material from previous version of the addon to current """
 
     bl_idname = "catt.convert_catt_material_from_old_to_new"
@@ -72,7 +72,7 @@ class CattMaterialRetroCompatibility(Operator):
         return {'FINISHED'}
 
 
-class CattExport(Operator):
+class MESH_OT_catt_export(Operator):
     """ operator used to export a scene to catt """
 
     # init locals
@@ -162,6 +162,7 @@ class CattExport(Operator):
 
         # required lookup table rebuild
         # warning: may temper with the ordering of bmesh faces and its matching with built list bmesh_faces_info
+        # did not stumble onto this problem in tested scenarios yet
         bm_concat.faces.ensure_lookup_table()
 
         # open file
@@ -220,7 +221,7 @@ class CattExport(Operator):
         bm_concat.free()
 
         # return
-        print('catt add-on: file saved at {0}'.format(file_path))
+        print('CATT add-on: file saved at {0}'.format(file_path))
         return 0
 
 

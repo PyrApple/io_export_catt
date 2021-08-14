@@ -88,13 +88,13 @@ class SceneProperties(PropertyGroup):
 classes = (
     SceneProperties,
 
-    ui.PanelInstructions,
-    ui.PanelExport,
-    ui.PanelMaterial,
+    ui.VIEW3D_PT_catt_instruction,
+    ui.VIEW3D_PT_catt_export,
+    ui.VIEW3D_PT_catt_material,
 
-    operators.CattExport,
-    operators.CattMaterialConvert,
-    operators.CattMaterialRetroCompatibility,
+    operators.MESH_OT_catt_export,
+    operators.MESH_OT_catt_material_retro_compat,
+    operators.MESH_OT_catt_material_convert,
 )
 
 
