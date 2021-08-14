@@ -25,86 +25,36 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 
-# create catt material from blender material (simply add abs / diff attributes)
-def init_catt_material(mat):
-
-    # flag as catt material
-    mat['is_catt_material'] = True
-
-    # loop over frequency bands
-    nFreqBands = 8
-    for iFreq in range(nFreqBands):
-        mat['abs_{0}'.format(iFreq)] = 40.0
-        mat['dif_{0}'.format(iFreq)] = 50.0
-
-    # disable use nodes (easier to access diffuse color that way)
-    mat.use_nodes = False
-
-
-class CattMaterialCreate(Operator):
+# convert material to catt material
+class CattMaterialConvert(Operator):
 
     # init locals
-    bl_label = "New Catt Material"
-    bl_idname = 'catt.matcreate'
-    bl_options = {'REGISTER', 'UNDO'}
-    mat_name = bpy.props.StringProperty(name='Material Name', default='CattMat')
-
-    def execute(self, context):
-
-        return {'FINISHED'}
-
-        error = self.sanityCheck(context)
-        if not error:
-            mat = self.createCattMaterial(context, self.mat_name)
-            self.assignMaterial(context, mat)
-            return {'FINISHED'}
-        else:
-            self.report({'ERROR'}, error)
-            return {'CANCELLED'}
-
-    # assign material to all selected objects, overriding all mat slots
-    def assignMaterial(self, context, mat):
-        for obj in context.selected_objects:
-            # obj.data.materials.clear()
-            obj.data.materials.append(mat)
-
-    def createCattMaterial(self, context, name):
-        mat = bpy.data.materials.new(name)
-        init_catt_material(mat)
-        return mat
-
-    # returns error if selected objects has usable materials
-    def sanityCheck(self, context):
-
-        for obj in context.selected_objects:
-            if obj.type != 'MESH':
-                return 'Object is not a mesh, Aborted'
-            for mat in obj.data.materials:
-                if mat:
-                    return False
-                    return 'Object already has materials, Aborted.'
-        return False
-
-
-class CattMaterialConvert(Operator):
-    """Convert material to Catt Material"""
     bl_idname = "catt.convert_to_catt_material"
     bl_label = "Convert to Catt Material"
 
     def execute(self, context):
-        # scene = bpy.context.scene
-        # catt_export = scene.catt_export
 
-        obj = context.object
-        mat = obj.active_material
+        # get active material
+        mat = context.object.active_material
 
-        init_catt_material(mat)
+        # flag as catt material
+        mat['is_catt_material'] = True
+
+        # loop over frequency bands
+        nFreqBands = 8
+        for iFreq in range(nFreqBands):
+            mat['abs_{0}'.format(iFreq)] = 40.0
+            mat['dif_{0}'.format(iFreq)] = 50.0
+
+        # disable use nodes (easier to access diffuse color that way)
+        mat.use_nodes = False
 
         return {'FINISHED'}
 
 
+# convert catt material from previous version of the addon to current
 class CattMaterialRetroCompatibility(Operator):
-    """"""
+
     bl_idname = "catt.convert_catt_material_from_old_to_new"
     bl_label = "Convert to new Catt Material"
 
@@ -121,316 +71,165 @@ class CattMaterialRetroCompatibility(Operator):
         return {'FINISHED'}
 
 
+# export active object as catt room
 class CattExportRoom(Operator):
-    """Export active object as catt room"""
+
+    # init locals
     bl_idname = "catt.export_room"
     bl_label = "Catt Export"
 
     def execute(self, context):
-        # scene = bpy.context.scene
-        # catt_export = scene.catt_export
-        # from . import export
-
-        # Check if export possible
-        error = ''
-        warning = ''
-        ret = 0
-
-        # get list of collections to export
-        collection_names = self.getActiveCollectionNames()
-
-        # check that each object in selected collection has catt materials
-        for collection_name in collection_names:
-            collection = bpy.data.collections[collection_name]
-            for obj in collection.objects:
-                if obj.type == 'MESH':
-                    error, warning = self.checkForCattMaterials(obj)
-
-                    if warning:
-                        self.report({'WARNING'}, warning)
-
-                    if error:
-                        self.report({'ERROR'}, error)
-                        return {'CANCELLED'}
-
-        # export collections
-        err = self.exportRoom(collection_names)
-
-        if err == 0:
-            self.report({'INFO'}, 'Catt export complete')
-            return {'FINISHED'}
-        else:
-            self.report({'ERROR'}, 'Catt export aborted, check in the console for more details')
-            return {'CANCELLED'}
-
-
-    # return the list of enabled collection names
-    def getActiveCollectionNames(self):
-
-        # init locals
-        collection_names = []
-
-        # view_layer = bpy.context.scene.view_layers["View Layer"]
-
-        # loop over view layers
-        for view_layer in bpy.context.scene.view_layers:
-
-            # loop over collections
-            for layer_collection in view_layer.layer_collection.children:
-
-                # add collection to list if not disabled
-                if not layer_collection.exclude:
-                    collection_names.append(layer_collection.name)
-
-        return collection_names
-
-
-    # check that object has catt materials attached
-    def checkForCattMaterials(self, obj):
-
-        error = ''
-        warning = ''
-
-        if len(obj.data.materials) == 0:
-            error = 'Room must have at least one material'
-        # when object has no material, somehow obj.data.materials still contains
-        # "<bpy_collection[1], IDMaterials>" which is of NoneType
-        elif len(obj.data.materials) == 1 and obj.data.materials[0] is None:
-            error = 'Room must have at least one material'
-        else:
-            for mat in obj.data.materials:
-                if 'abs_0' not in mat:
-                    warning = obj.name + ' has at least 1 non Catt material: setting default abs/diff values'
-                    init_catt_material(mat)
-        return error, warning
-
-
-
-    def exportRoom(self, collection_names):
-        """ Main export method """
-
-        # get locals
-        catt_export = bpy.context.scene.catt_export
-        export_path = bpy.path.abspath(catt_export.export_path)
-
-        # get export path
-        fileName = catt_export.master_file_name + ".GEO"
-        filePath = os.path.join(export_path, fileName)
-
-        # get list of objects to export
-        objects = self.getObjectsInCollections(collection_names)
-
-        # add collection less objects (todo: not sure this is robust way to identify)
-        for obj in bpy.context.scene.objects:
-            print(obj.name, len(obj.users_collection), obj.users_collection[0].name)
-            if( obj.users_collection[0].name == 'Master Collection' ):
-                objects.append(obj)
-
-        # export objects
-        self.exportObjects(filePath, objects)
-
-        return 0
-
-    # remove * from collection name if need be
-    def removeTrailingAsterix(self, name):
-
-        if( name[-1] == '*' ):
-            return name[0:len(name) - 1]
-        else:
-            return name
-
-
-    #
-    def writeImporterFile(self, filePath, collection_names):
-
-
-        # open file
-        with open(filePath, 'w', newline='\r\n') as data:
-
-            fw = data.write
-
-            # Catt related header
-            header = ";" + filePath
-            fw('%s\n' % header)
-            header = ";PROJECT="
-            fw('%s\n\n' % header)
-
-            # Blender Add-on related header
-            header = ";FILE GENERATED VIA BLENDER CATT EXPORT ADD-ON"
-            fw('%s\n' % header)
-            blendFilename = os.path.splitext(os.path.split(bpy.data.filepath)[1])[0]
-            if not blendFilename:
-                blendFilename = 'floating file (unsaved)'
-            else:
-                blendFilename = blendFilename + ".blend"
-            header = ";BASED ON .BLEND FILE: " + blendFilename
-            fw('%s\n\n' % header)
-
-            for collectionName in collection_names:
-                fw('INCLUDE %s\n' % self.removeTrailingAsterix(collectionName))
-
-
-    # return a list of objects in collections
-    def getObjectsInCollections(self, collection_names):
 
         # init local
-        objects = []
+        catt_export = context.scene.catt_export
 
-        # loop over collections
-        for collection_name in collection_names:
+        # get list of objects to export (meshes visible in viewport)
+        objects = [obj for obj in bpy.context.view_layer.objects if obj.visible_get() and obj.type == 'MESH']
 
-            # get collection from name
-            collection = bpy.data.collections[collection_name]
+        # check for catt materials
+        for obj in objects:
 
-            # loop over objects
-            for obj in collection.objects:
-                if obj.type == 'MESH':
-                    objects.append(obj)
+            # no material or dummy material?
+            # obj.data.materials sometimes contains single NoneType element when object has no materials
+            if len(obj.data.materials) == 0 or (len(obj.data.materials) == 1 and obj.data.materials[0] is None):
+                self.report({'ERROR'}, 'object {0} has no materials'.format(obj.name))
+                return {'CANCELLED'}
 
-        return objects
+            # not catt materials?
+            for mat in obj.data.materials:
+                if 'is_catt_material' not in mat:
+                    self.report({'ERROR'}, 'object {0} material {1} is not a CATT material'.format(obj.name, mat.name))
+                    return {'CANCELLED'}
+
+        # get export path
+        export_path = bpy.path.abspath(catt_export.export_path)
+        file_name = catt_export.master_file_name + ".GEO"
+        file_path = os.path.join(export_path, file_name)
+
+        # export objects
+        self.export_objects(file_path, objects)
+
+        # exit
+        self.report({'INFO'}, 'CATT export complete')
+        return {'FINISHED'}
 
 
-    def exportObjects(self, filePath, objects):
+    # remove * from collection name if need be
+    def remove_trailing_asterix(self, name):
 
+        if( len(name) == 0 or name[-1] != '*'):
+            return name
+        else:
+            return name[0:len(name) - 1]
+
+
+    def export_objects(self, file_path, objects):
 
         # init locals
         catt_export = bpy.context.scene.catt_export
+        bmesh_faces_info = []
+        bmeshes = []
+        material_names = dict()
 
-        # get list of objects as bmeshes
-        bmeshes = dict()
+        # convert objects to bmeshes, extract valuable face info for later
         for obj in objects:
-            # get bmesh
+
+            # add object material names to global list
+            for mat in obj.data.materials:
+                if mat.name not in material_names:
+                    material_names[mat.name] = mat
+
+            # convert obj to bmesh
             bm = bmesh_copy_from_object(obj, transform=True, triangulate=catt_export.triangulate_faces, apply_modifiers=catt_export.apply_modifiers)
-            bmeshes[obj.name] = bm
+            bmeshes.append(bm)
 
-        # save face info before concat to single bmesh
-        bmFacesInfo = []
-        for obj in objects:
-
-            # get collection name
-            collectionName = ''
-            if( len(obj.users_collection) > 0 ):
-                collection = obj.users_collection[0] # only support 1st level collections
-                collectionName = collection.name
+            # keep track of object collection
+            collection_name = '' if len(obj.users_collection) == 0 else obj.users_collection[0].name
 
             # loop over faces
-            bm = bmeshes[obj.name]
             for face in bm.faces:
 
-                # get mat name
-                matName = obj.material_slots[face.material_index].material.name
+                # keep track of face material
+                mat_name = obj.material_slots[face.material_index].material.name
 
-                # save to locals
-                bmFacesInfo.append([collectionName, obj.name, matName])
+                # save face info to local
+                bmesh_faces_info.append({'material_name' : mat_name, 'collection_name' : collection_name, 'object_name' : obj.name})
 
-        # concat into single bmesh
+        # concat into single mesh
         bm_concat = bmesh.new()
-        mesh = bpy.data.meshes.new("mesh")
-        for objName in bmeshes:
-            bmeshes[objName].to_mesh(mesh)
+        mesh = bpy.data.meshes.new("tmp_mesh")
+        for bm in bmeshes:
+            bm.to_mesh(mesh)
             bm_concat.from_mesh(mesh)
-            bmeshes[objName].free()
+            bm.free()
 
         # remove duplicates
         bmesh.ops.remove_doubles(bm_concat, verts=bm_concat.verts, dist=0.001)
 
-        print('required LUT rebuild probably screws the whole collection/obj/mat face referencing above')
+        # required lookup table rebuild
+        # warning: may temper with the ordering of bmesh faces and its matching with built list bmesh_faces_info
         bm_concat.faces.ensure_lookup_table()
 
-        # get list of materials in objects
-        materials = dict()
-        # loop over objects
-        for obj in objects:
-            # loop over materials
-            for mat in obj.data.materials:
-                # add material to locals if not already present
-                if mat.name not in materials:
-                    materials[mat.name] = mat
-
-
         # open file
-        with open(filePath, 'w', newline='\r\n') as data:
+        with open(file_path, 'w', newline='\r\n') as data:
 
+            # init write
             fw = data.write
 
-            # Catt related header
-            header = ";" + filePath
-            fw('%s\n' % header)
-            header = ";PROJECT="
-            fw('%s\n\n' % header)
+            # header
+            fw(';file generated by the blender catt export add-on from: \n;{0} \n\n'.format(bpy.data.filepath))
 
-            # Blender Add-on related header
-            header = ";FILE GENERATED VIA BLENDER CATT EXPORT ADD-ON"
-            fw('%s\n' % header)
-            blendFilename = os.path.splitext(os.path.split(bpy.data.filepath)[1])[0]
-            if not blendFilename:
-                blendFilename = 'floating file (unsaved)'
-            else:
-                blendFilename = blendFilename + ".blend"
-            header = ";BASED ON .BLEND FILE: " + blendFilename
-            fw('%s\n\n' % header)
-
-            # write material(s)
-            header = ""
+            # materials
+            fw(';MATERIALS\n\n')
             r = 1 # round factor
-            for mat in materials.values():
-                tmp = "abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2]))
-                header = header + tmp
-            fw('%s\n' % header)
+            for mat in material_names.values():
+                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
 
-
-            # write corners (vertices)
-            header = "CORNERS"
-            fw('%s\n\n' % header)
-            idOffset = 0
+            # vertices
+            fw('\nCORNERS\n\n')
             for vertice in bm_concat.verts:
-                verticeId = vertice.index + 1
-                fw("{0} {1:.2f} {2:.2f} {3:.2f} \n".format(verticeId, vertice.co[0], vertice.co[1], vertice.co[2]) )
+                fw("{0} {1:.2f} {2:.2f} {3:.2f} \n".format(vertice.index + 1, vertice.co[0], vertice.co[1], vertice.co[2]) )
 
-            # write planes (faces)
-            header = "PLANES"
-            fw('\n%s\n\n' % header)
-
+            # faces
+            fw('\nPLANES\n\n')
             for iFace in range(len(bm_concat.faces)):
-            # for face in bm_concat.faces:
-                face = bm_concat.faces[iFace]
 
-                # to clean
-                collectionName = bmFacesInfo[iFace][0]
-                objName = bmFacesInfo[iFace][1]
-                matName = bmFacesInfo[iFace][2]
+                # init locals
+                face = bm_concat.faces[iFace]
+                collection_name = bmesh_faces_info[iFace]['collection_name']
+                object_name = bmesh_faces_info[iFace]['object_name']
+                material_name = bmesh_faces_info[iFace]['material_name']
 
                 # auto edge scattering if collection or object names end with '*'
                 edgeScatteringStr = ''
-                if( len(collectionName) > 0 and collectionName[-1] == '*' ):
+                if( len(collection_name) > 0 and collection_name[-1] == '*' ):
                     edgeScatteringStr = '*'
-                    collectionName = self.removeTrailingAsterix(collectionName)
-                if( objName[-1] == '*' ):
-                    objName = self.removeTrailingAsterix(objName)
+                    collection_name = self.remove_trailing_asterix(collection_name)
+                if( object_name[-1] == '*' ):
+                    object_name = self.remove_trailing_asterix(object_name)
                     edgeScatteringStr = '*'
 
-                # shape face name collection and object names
-                faceName = ''
-                if( collectionName != '' ):
-                    faceName += collectionName + '-'
-                faceName += objName
+                # shape face name from collection and object names
+                # 'Master Collection' is the name of blender root collection
+                if collection_name == '' or collection_name == 'Master Collection':
+                    faceName = object_name
+                else:
+                    faceName = collection_name + '-' + object_name
 
                 # get face vertice ids
                 vertList = [vertice.index + 1 for vertice in face.verts]
                 vertListStr = ' '.join(map(str, vertList))
 
                 # write face line
-                fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + 1, faceName, vertListStr, matName, edgeScatteringStr) )
+                fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + 1, faceName, vertListStr, material_name, edgeScatteringStr) )
 
-
+        # free bmesh
         bm_concat.free()
 
-        print('Catt file exported at {0}'.format(filePath))
-
+        # return
+        print('catt add-on: file saved at {0}'.format(file_path))
         return 0
 
-
-import bmesh
 
 # method from the Print3D add-on: create a bmesh from an object
 # (for triangulation, apply modifiers, etc.)
@@ -466,32 +265,3 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
         bmesh.ops.triangulate(bm, faces=bm.faces)
 
     return bm
-
-
-
-# # JOIN BMESHES
-#
-# The best solution I found so far is using the bmesh.from_mesh( mesh ) method.
-# Apparently, if you call this method more than once, it will add the 2nd mesh to the first, thus effectively joining them:
-#
-# import bpy, bmesh
-#
-# bm = bmesh.new()
-# bm.from_mesh( mesh1 ) # Add first mesh
-# bm.from_mesh( mesh2 ) # Add 2nd mesh
-
-
-# # REMOVE BMESH DUPLICATES
-# bm = bmesh.new()   # create an empty BMesh
-# bm.from_mesh(me)   # fill it in from a Mesh
-#
-# bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.1)
-#
-# # Finish up, write the bmesh back to the mesh
-# bm.to_mesh(me)
-# bm.free()  # free and prevent further access
-#
-# me.validate()
-# me.update()
-
-

@@ -24,7 +24,7 @@ from bpy.types import Panel
 class PanelCommon:
 
     # init locals
-    bl_category = "Catt"
+    bl_category = "CATT"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
 
@@ -118,7 +118,7 @@ class PanelMaterial(PanelCommon, Panel):
 
         # material datablock manager
         row = layout.row()
-        layout.template_ID_preview(obj, "active_material", new="catt.matcreate")
+        layout.template_ID_preview(obj, "active_material")
 
         # if object has materials
         if len(context.active_object.material_slots) > 0:
