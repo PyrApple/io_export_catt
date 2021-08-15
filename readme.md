@@ -12,7 +12,7 @@ Catt-Acousitic model export Addon for Blender
 
 ## Using exported model in CATT-Acoustic
 
-Remove default audiance plane in CATT, else model import will raise an error because first face in model is not necessarily horizontal (while audiance plane should be)
+Remove default audiance plane in CATT, else model import will raise an error because first face in model is not necessarily horizontal (while audience plane should be)
 
 
 ## Flat faces
