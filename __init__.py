@@ -22,7 +22,7 @@ bl_info = {
     "blender": (2, 93, 0),
     "location": "3D View > Sidebar",
     "description": "Utility for exporting Blender scenes to CATT-Acoustic GEO files",
-    "doc_url": "",
+    "doc_url": "https://github.com/PyrApple/io_export_catt/blob/master/readme.md",
     "support": 'COMMUNITY',
     "category": "Mesh"}
 

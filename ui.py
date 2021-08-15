@@ -38,7 +38,7 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
     """ panel instructions """
 
     # title
-    bl_label = "Checks"
+    bl_label = "Reminder"
 
     def draw(self, context):
         """ method called upon ui draw """
@@ -47,13 +47,13 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
         layout = self.layout
 
         row = layout.row()
-        row.label(text="Make normals consistent")
+        row.label(text="1) Check normals orientation")
 
         row = layout.row()
-        row.label(text="Make normals point inward for room, outward for objects")
+        row.label(text="2) Assert flat faces / triangulate")
 
         row = layout.row()
-        row.label(text="Check all faces are flat, else use triangulate option")
+        row.label(text="3) Assign CATT materials")
 
 
 class VIEW3D_PT_catt_export(View3DCattPanel, Panel):

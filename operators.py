@@ -97,11 +97,19 @@ class MESH_OT_catt_export(Operator):
                 self.report({'ERROR'}, 'object {0} has no materials'.format(obj.name))
                 return {'CANCELLED'}
 
-            # not catt materials?
+            # loop over materials
             for mat in obj.data.materials:
+
+                # not catt materials?
                 if 'is_catt_material' not in mat:
                     self.report({'ERROR'}, 'object {0} material {1} is not a CATT material'.format(obj.name, mat.name))
                     return {'CANCELLED'}
+
+                # material with too long name
+                if len(mat.name) > 15:
+                    self.report({'ERROR'}, 'object {0} material {1} name is too long (max is 15 characters)'.format(obj.name, mat.name))
+                    return {'CANCELLED'}
+
 
         # get export path
         export_path = bpy.path.abspath(catt_export.export_path)
@@ -147,7 +155,12 @@ class MESH_OT_catt_export(Operator):
                 mat_name = obj.material_slots[face.material_index].material.name
 
                 # save face info to local
-                bmesh_faces_info.append({'material_name' : mat_name, 'collection_name' : collection_name, 'object_name' : obj.name})
+                bmesh_faces_info.append({
+                    'material_name' : mat_name,
+                    'collection_name' : collection_name,
+                    'object_name' : obj.name,
+                    'face_index': face.index
+                    })
 
         # concat into single mesh
         bm_concat = bmesh.new()
@@ -178,7 +191,7 @@ class MESH_OT_catt_export(Operator):
             fw(';MATERIALS\n\n')
             r = 1 # round factor
             for mat in material_names.values():
-                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8} > L < {9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
+                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}> L <{9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
 
             # vertices
             fw('\nCORNERS\n\n')
@@ -193,6 +206,7 @@ class MESH_OT_catt_export(Operator):
                 collection_name = bmesh_faces_info[i_face]['collection_name']
                 object_name = bmesh_faces_info[i_face]['object_name']
                 material_name = bmesh_faces_info[i_face]['material_name']
+                face_index = bmesh_faces_info[i_face]['face_index']
 
                 # auto edge scattering if collection or object names end with '*'
                 edge_scattering_str = ''
@@ -205,10 +219,9 @@ class MESH_OT_catt_export(Operator):
 
                 # shape face name from collection and object names
                 # 'Master Collection' is the name of blender root collection
-                if collection_name in ('', 'Master Collection'):
-                    face_name = object_name
-                else:
-                    face_name = collection_name + '-' + object_name
+                face_name = "{0}-{1}".format(object_name, face_index)
+                if collection_name not in ('', 'Master Collection'):
+                    face_name = "{0}-{1}".format(collection_name, face_name)
 
                 # get face vertice ids
                 vertices_list = [vertice.index + 1 for vertice in face.verts]

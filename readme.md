@@ -60,11 +60,11 @@ CATT can only handle flat faces/planes. If the model contains non-flat faces, it
 
 from https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 
-- Click ``Edit > Preferences``
-- In the Display panel of the Interface tab, tick ``Developer Extras``
+- click ``Edit > Preferences``
+- in the Display panel of the Interface tab, tick ``Developer Extras``
 - (or type ``bpy.context.preferences.view.show_developer_ui = True`` into the Python console)
-- Open the Overlays popover in the 3D View Overlays popover (top right of the 3D view)
-- Look for the label Developer and tick the checkbox ``Indices``
+- open the Overlays popover in the 3D View Overlays popover (top right of the 3D view)
+- look for the label Developer and tick the checkbox ``Indices``
 
 
 ## Flag faces for automatic edge scattering in CATT
