@@ -22,7 +22,7 @@ import os
 import bpy
 import bmesh
 from bpy.types import Operator
-
+from . import utils
 
 class MESH_OT_catt_material_convert(Operator):
     """ operator used to convert material to catt material """
@@ -34,17 +34,37 @@ class MESH_OT_catt_material_convert(Operator):
     def execute(self, context):
         """ method called from ui """
 
+        # init locals
+        catt_export = context.scene.catt_export
+        rna_dict = {}
+
         # get active material
         mat = context.object.active_material
 
-        # flag as catt material
-        mat['is_catt_material'] = True
-
         # loop over frequency bands
-        num_freq_bands = 8
-        for i_freq in range(num_freq_bands):
+        for i_freq, freq in enumerate(catt_export.frequency_bands):
+
+            # init property
             mat['abs_{0}'.format(i_freq)] = 40.0
             mat['dif_{0}'.format(i_freq)] = 50.0
+
+            # prepare rna ui (for soft lock, description, etc.)
+            rna_dict['abs_{0}'.format(i_freq)] = {
+                "description": 'absorption coef at {0}'.format(utils.freq_to_str(freq)),
+                "default":40.0, "soft_min":0.0, "soft_max":100.0,
+                "min": 0.0, "max": 100.0
+            }
+            rna_dict['dif_{0}'.format(i_freq)] = {
+                "description": 'diffraction coef at {0}'.format(utils.freq_to_str(freq)),
+                "default":50.0, "soft_min":0.0, "soft_max":100.0,
+                "min": 0.0, "max": 100.0
+            }
+
+        # apply rna
+        mat["_RNA_UI"] = rna_dict
+
+        # flag as catt material
+        mat['is_catt_material'] = True
 
         # disable use nodes (easier to access diffuse color that way)
         mat.use_nodes = False
@@ -73,7 +93,7 @@ class MESH_OT_catt_material_retro_compat(Operator):
 
 
 class MESH_OT_catt_export(Operator):
-    """ operator used to export a scene to catt """
+    """Export objects of every collection included in the View Layer"""
 
     # init locals
     bl_idname = "catt.export"
@@ -113,7 +133,7 @@ class MESH_OT_catt_export(Operator):
 
         # get export path
         export_path = bpy.path.abspath(catt_export.export_path)
-        file_name = catt_export.master_file_name + ".GEO"
+        file_name = catt_export.master_file_name
         file_path = os.path.join(export_path, file_name)
 
         # export objects

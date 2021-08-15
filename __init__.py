@@ -30,6 +30,7 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(operators)
+    importlib.reload(utils)
 
 else:
     import bpy
@@ -38,7 +39,7 @@ else:
             BoolProperty,
             # IntProperty,
             # FloatProperty,
-            # FloatVectorProperty,
+            FloatVectorProperty,
             # EnumProperty,
             PointerProperty,
             )
@@ -50,38 +51,40 @@ else:
     from . import (
             ui,
             operators,
+            utils,
             )
 
 
 class SceneProperties(PropertyGroup):
 
     export_path: StringProperty(
-            name="Export directory",
-            description="Path to directory where the files are created",
+            name="Export Directory",
+            description="Path to the directory where the file will be saved",
             default="//",
             maxlen=1024,
             subtype="DIR_PATH",
             )
     master_file_name: StringProperty(
-            name="Master file name",
-            description=".GEO file created at export",
-            default="MASTER",
+            name="Export File Name",
+            description="Name of the file created upon export",
+            default="MASTER.GEO",
             maxlen=1024,
             )
-    display_normals: BoolProperty(
-            name="Display normals",
-            description='Display model normals',
-            default=False,
-            )
     triangulate_faces: BoolProperty(
-            name="Triangulate faces",
-            description='Transform quads to tri at export',
+            name="Triangulate Faces",
+            description='Transform ngons in triangles upon export',
             default=False,
             )
     apply_modifiers: BoolProperty(
-            name="Apply modifiers",
-            description='Apply modifiers on object at export',
+            name="Apply Modifiers",
+            description='Apply objects modifiers upon export',
             default=False,
+            )
+    frequency_bands: FloatVectorProperty(
+            name="Frequency Bands",
+            description='Frequency bands (in Hz) for which absorption/diffraction coefs are defined',
+            size=8,
+            default=(125, 250, 500, 1000, 2000, 4000, 8000, 16000),
             )
 
 
