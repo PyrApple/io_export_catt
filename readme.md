@@ -64,7 +64,7 @@ from https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 - in the Display panel of the Interface tab, tick ``Developer Extras``
 - (or type ``bpy.context.preferences.view.show_developer_ui = True`` into the Python console)
 - open the Overlays popover in the 3D View Overlays popover (top right of the 3D view)
-- look for the label Developer and tick the checkbox ``Indices``
+- look for the label Developer and tick the check box ``Indices``
 
 
 ## Flag faces for automatic edge scattering in CATT

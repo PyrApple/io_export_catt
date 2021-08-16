@@ -162,7 +162,7 @@ class MESH_OT_catt_export(Operator):
                     material_names[mat.name] = mat
 
             # convert obj to bmesh
-            bm = bmesh_copy_from_object(obj, transform=True, triangulate=catt_export.triangulate_faces, apply_modifiers=catt_export.apply_modifiers)
+            bm = utils.bmesh_copy_from_object(obj, transform=True, triangulate=catt_export.triangulate_faces, apply_modifiers=catt_export.apply_modifiers)
             bmeshes.append(bm)
 
             # keep track of object collection
@@ -256,35 +256,3 @@ class MESH_OT_catt_export(Operator):
         # return
         print('CATT add-on: file saved at {0}'.format(file_path))
         return 0
-
-
-# method from the Print3D add-on: create a bmesh from an object
-# (for triangulation, apply modifiers, etc.)
-def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
-    """ returns a transformed, triangulated copy of the mesh """
-
-    assert obj.type == 'MESH'
-
-    if apply_modifiers and obj.modifiers:
-        depsgraph = bpy.context.evaluated_depsgraph_get()
-        obj_eval = obj.evaluated_get(depsgraph)
-        me = obj_eval.to_mesh()
-        bm = bmesh.new()
-        bm.from_mesh(me)
-        obj_eval.to_mesh_clear()
-    else:
-        me = obj.data
-        if obj.mode == 'EDIT':
-            bm_orig = bmesh.from_edit_mesh(me)
-            bm = bm_orig.copy()
-        else:
-            bm = bmesh.new()
-            bm.from_mesh(me)
-
-    if transform:
-        bm.transform(obj.matrix_world)
-
-    if triangulate:
-        bmesh.ops.triangulate(bm, faces=bm.faces)
-
-    return bm
