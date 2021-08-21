@@ -98,6 +98,15 @@ After import of the WRL file in blender, ensure that your scene coordinate syste
 
 The reverse operation is not necessary: a scene created in Blender and exported to CATT will have the correct coordinates.
 
+### Fix imported materials
+
+CATT to WRL to Blender export/import will not not preserve material naming. To avoid having to reassign them by hand:
+- make sure every material in your CATT scene has a different RGB value (to within +/-1 on at least one component)
+- export WRL, import into Blender. Use Blender 2.79b as the WRL import add-on currently does not handle material import in Blender 2.9 or higher
+- save the scene, close Blender 2.79b, re-open in Blender 2.93 or higher
+- to rename materials, follow the instruction in the script in ./utils/fix_wrl_materials.py and run it from the Blender editor
+- to set catt materials properties (optional), follow the instruction in the script in ./utils/define_catt_materials.py and run it from the Blender editor
+
 
 ## Notes on design choice
 
