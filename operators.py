@@ -209,7 +209,18 @@ class MESH_OT_catt_export(Operator):
             fw(';MATERIALS\n\n')
             r = 1 # round factor
             for mat in material_names.values():
-                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}> L <{9} {10} {11} {12} {13} {14} : {15} {16}> {{{17} {18} {19}}} \n".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r), round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r), int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
+
+                # absorption
+                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}>".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r)))
+
+                # diffraction
+                fw(" L ")
+                if mat['is_diff_estimate']:
+                    fw("<estimate({0})>".format(round(mat['diff_estimate'], 3)))
+                else:
+                    fw("<{0} {1} {2} {3} {4} {5} : {6} {7}>".format(round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r)))
+
+                fw(" {{{0} {1} {2}}} \n".format(int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
 
             # vertices
             fw('\nCORNERS\n\n')

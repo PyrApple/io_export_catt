@@ -165,9 +165,22 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             row = layout.row()
             row.label(text="Diffraction")
 
-            # loop over frequencies
-            for i_freq, freq in enumerate(catt_export.frequency_bands):
+            # use estimate?
+            rowsub = layout.row(align=True)
+            split = rowsub.split(factor=0.3)
+            colsub = split.column()
+            colsub.prop(mat,'["is_diff_estimate"]', text="")
+            colsub = split.column()
+            colsub.label(text="Use estimated")
+
+            if( mat['is_diff_estimate'] ):
                 rowsub = layout.row(align=True)
-                rowsub.label(text=utils.freq_to_str(freq))
-                rowsub.prop(mat,'["dif_{0}"]'.format(i_freq), text="")
+                rowsub.label(text="estimated")
+                rowsub.prop(mat,'["diff_estimate"]', text="")
+            else:
+                # loop over frequencies
+                for i_freq, freq in enumerate(catt_export.frequency_bands):
+                    rowsub = layout.row(align=True)
+                    rowsub.label(text=utils.freq_to_str(freq))
+                    rowsub.prop(mat,'["dif_{0}"]'.format(i_freq), text="")
 
