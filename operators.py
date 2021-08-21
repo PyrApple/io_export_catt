@@ -60,33 +60,31 @@ class MESH_OT_catt_material_convert(Operator):
                 "min": 0.0, "max": 100.0
             }
 
-        # apply rna
-        mat["_RNA_UI"] = rna_dict
+        # add diff estimate flag and value
+        mat['is_diff_estimate'] = False
+        rna_dict['is_diff_estimate'] = {
+                "description": 'use diffraction estimate',
+                "default":0, "soft_min":0, "soft_max":1,
+                "min": 0, "max": 1
+            }
+        mat['diff_estimate'] = 0.1
+        rna_dict['diff_estimate'] = {
+                "description": 'diffraction estimate value',
+                "default":0.1, "soft_min":0.0, "min": 0.0
+            }
 
         # flag as catt material
         mat['is_catt_material'] = True
+        rna_dict['is_diff_estimate'] = {
+                "description": 'flag material as a CATT material',
+                "default":0, "soft_min":0, "soft_max":1,
+                "min": 0, "max": 1
+            }
+
+        # apply rna
+        mat["_RNA_UI"] = rna_dict
 
         # disable use nodes (easier to access diffuse color that way)
-        mat.use_nodes = False
-
-        return {'FINISHED'}
-
-
-class MESH_OT_catt_material_retro_compat(Operator):
-    """ operator used to convert catt material from previous version of the addon to current """
-
-    bl_idname = "catt.convert_catt_material_from_old_to_new"
-    bl_label = "Convert to new Catt Material"
-
-    def execute(self, context):
-        """ method called from ui """
-
-        obj = context.object
-        mat = obj.active_material
-
-        mat['is_catt_material'] = mat['cattMaterial']
-        del mat['cattMaterial']
-
         mat.use_nodes = False
 
         return {'FINISHED'}

@@ -133,9 +133,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             # retro compatibility
             if 'cattMaterial' in mat:
                 row = layout.row()
-                row.label(text="Old CATT material detected", icon='ERROR')
-                row = layout.row()
-                row.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
+                row.label(text="Deprecated CATT material", icon='ERROR')
                 return
 
             # material is not a catt material

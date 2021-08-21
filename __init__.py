@@ -96,7 +96,6 @@ classes = (
     ui.VIEW3D_PT_catt_material,
 
     operators.MESH_OT_catt_export,
-    operators.MESH_OT_catt_material_retro_compat,
     operators.MESH_OT_catt_material_convert,
 )
 
