@@ -36,10 +36,10 @@ class View3DCattPanel:
 
 
 class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
-    """ panel instructions """
+    """ panel utilities """
 
     # title
-    bl_label = "Check list"
+    bl_label = "Utilities"
 
     def draw(self, context):
         """ method called upon ui draw """
@@ -48,16 +48,16 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
         layout = self.layout
 
         row = layout.row()
-        row.label(text="1) Normals orientation")
+        row.label(text="Assign CATT materials")
 
         row = layout.row()
-        row.label(text="2) Flat faces or triangulate")
+        row.label(text="Check normal orientations")
 
         row = layout.row()
-        row.label(text="3) Assign CATT materials")
+        row.label(text="Assert flat faces (or triangulate)")
 
-        # row = layout.row()
-        # row.operator("catt.utils", text="Non flat faces", icon="IMPORT").arg = 'check_nonflat_faces'
+        row = layout.row()
+        row.operator("catt.utils", text="Detect Non-Planar faces", icon="XRAY").arg = 'check_nonflat_faces' # 'SURFACE_DATA', 'XRAY', 'MOD_WARP'
 
 
 class VIEW3D_PT_catt_export(View3DCattPanel, Panel):

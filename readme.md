@@ -49,6 +49,8 @@ To comply with how CATT handles geometries, it is suggested to check before expo
 - Faces normals are pointing towards the "inside" of the scene (e.g. inwards for walls, outwards for furnitures)
 - Faces are flat (see below). The "triangulate faces" option can be used to ensure this condition
 
+Use the ``Detect non-flat faces`` utility (after selecting an object in 3d view), coupled with blender internal utility (in edit mode) under ``Mesh/Clean Up/Split Non-Planar Faces``, to manually fix non-flat faces. Use ``Mesh/Clean Up/Make Planar Faces`` at your own risk (i.e. not).
+
 ### Ensure flat faces
 
 CATT can only handle flat faces/planes. If the model contains non-flat faces, it is recommended to either use the add-on "triangulate faces" option upon export, or to fix the blender meshes using internal tools:

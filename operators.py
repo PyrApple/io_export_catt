@@ -295,33 +295,51 @@ class MESH_OT_catt_utils(Operator):
         if self.arg == 'check_nonflat_faces':
 
             # discard if no object selected
+            sel_objects = bpy.context.selected_objects
+            if( len(sel_objects) == 0 ):
+                self.report({'INFO'}, 'No object selected.')
+                return {'CANCELLED'}
 
             # switch to edit mode
+            bpy.ops.object.mode_set(mode = 'EDIT')
 
-
-            context = bpy.context
-            obj = context.edit_object
-            mesh = obj.data
-
-            TOL = 0.001
+            # context = bpy.context
+            # obj = context.edit_object
+            mesh = bpy.context.edit_object.data
 
             # select None
             bpy.ops.mesh.select_all(action='DESELECT')
             bm = bmesh.from_edit_mesh(mesh)
             ngons = [f for f in bm.faces if len(f.verts) > 3]
 
+            # init locals
+            has_non_flat_faces = False
+            planar_tolerance = 1e-6
+
+            # loop over faces
             for ngon in ngons:
+
                 # define a plane from first 3 points
                 co = ngon.verts[0].co
                 norm = normal([v.co for v in ngon.verts[:3]])
 
-                ngon.select =  not all(
-                    [abs(distance_point_to_plane(v.co, co, norm)) < TOL
-                    for v in ngon.verts[3:]])
+                # set face selected
+                ngon.select = not all( [abs(distance_point_to_plane(v.co, co, norm)) < planar_tolerance for v in ngon.verts[3:]] )
 
+                # flag at least one non flat face detected
+                if ngon.select:
+                    has_non_flat_faces = True
+
+            # update mesh
             bmesh.update_edit_mesh(mesh)
 
-        return {'FINISHED'}
+            # disable edit mode if no non-flat face detected
+            if not has_non_flat_faces:
+                bpy.ops.object.mode_set(mode = 'OBJECT')
+                self.report({'INFO'}, 'No non-flat face detected.')
+
+            return {'FINISHED'}
+
 
 
 
