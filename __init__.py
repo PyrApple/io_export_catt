@@ -38,7 +38,7 @@ else:
             StringProperty,
             BoolProperty,
             # IntProperty,
-            # FloatProperty,
+            FloatProperty,
             FloatVectorProperty,
             # EnumProperty,
             PointerProperty,
@@ -86,6 +86,12 @@ class SceneProperties(PropertyGroup):
             size=8,
             default=(125, 250, 500, 1000, 2000, 4000, 8000, 16000),
             )
+    rm_doubles_dist: FloatProperty(
+            name="Merge Distance",
+            description='Distance (in m) below which two vertices are merged when creating the export mesh',
+            default=1e-7,
+            min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+            )
 
 
 classes = (
@@ -97,6 +103,7 @@ classes = (
 
     operators.MESH_OT_catt_export,
     operators.MESH_OT_catt_material_convert,
+    operators.MESH_OT_catt_utils,
 )
 
 

@@ -265,3 +265,58 @@ class MESH_OT_catt_export(Operator):
         # return
         print('CATT add-on: file saved at {0}'.format(file_path))
         return 0
+
+
+from mathutils.geometry import (distance_point_to_plane, normal)
+
+
+class MESH_OT_catt_utils(Operator):
+    """A set of utilities for the Catt add-on"""
+
+    # init locals
+    bl_idname = "catt.utils"
+    bl_label = "Catt Utils"
+
+    # shape input argument
+    arg: bpy.props.StringProperty(name='arg', default='')
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        catt_export = context.scene.catt_export
+
+        # check for non flat faces
+        if self.arg == 'check_nonflat_faces':
+
+            # discard if no object selected
+
+            # switch to edit mode
+
+
+            context = bpy.context
+            obj = context.edit_object
+            mesh = obj.data
+
+            TOL = 0.001
+
+            # select None
+            bpy.ops.mesh.select_all(action='DESELECT')
+            bm = bmesh.from_edit_mesh(mesh)
+            ngons = [f for f in bm.faces if len(f.verts) > 3]
+
+            for ngon in ngons:
+                # define a plane from first 3 points
+                co = ngon.verts[0].co
+                norm = normal([v.co for v in ngon.verts[:3]])
+
+                ngon.select =  not all(
+                    [abs(distance_point_to_plane(v.co, co, norm)) < TOL
+                    for v in ngon.verts[3:]])
+
+            bmesh.update_edit_mesh(mesh)
+
+        return {'FINISHED'}
+
+
+

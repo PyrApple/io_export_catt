@@ -56,6 +56,9 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
         row = layout.row()
         row.label(text="3) Assign CATT materials")
 
+        # row = layout.row()
+        # row.operator("catt.utils", text="Non flat faces", icon="IMPORT").arg = 'check_nonflat_faces'
+
 
 class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
     """ panel export """
@@ -92,6 +95,13 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         rowsub = col.row(align=True)
         rowsub.prop(catt_export, "apply_modifiers")
+
+        rowsub = col.row()
+        rowsub.label(text="")
+        rowsub = col.row(align=True)
+        rowsub.label(text="Remove doubles:")
+        rowsub = col.row(align=True)
+        rowsub.prop(catt_export, "rm_doubles_dist")
 
         rowsub = col.row()
         rowsub.label(text="")
