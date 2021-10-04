@@ -118,6 +118,11 @@ class MESH_OT_catt_export(Operator):
             # loop over materials
             for mat in obj.data.materials:
 
+                # discard empty material slots (@todo: handle empty material slots during export)
+                if mat is None:
+                    self.report({'ERROR'}, 'object {0} has empty matrial slot(s), please remove them'.format(obj.name))
+                    return {'CANCELLED'}
+
                 # not catt materials?
                 if 'is_catt_material' not in mat:
                     self.report({'ERROR'}, 'object {0} material {1} is not a CATT material'.format(obj.name, mat.name))
