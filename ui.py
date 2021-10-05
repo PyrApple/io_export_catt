@@ -101,7 +101,7 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         rowsub = col.row(align=True)
         rowsub.label(text="Remove doubles:")
         rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "rm_doubles_dist")
+        rowsub.prop(catt_export, "rm_duplicates_dist")
 
         rowsub = col.row()
         rowsub.label(text="")

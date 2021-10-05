@@ -86,7 +86,7 @@ class SceneProperties(PropertyGroup):
             size=8,
             default=(125, 250, 500, 1000, 2000, 4000, 8000, 16000),
             )
-    rm_doubles_dist: FloatProperty(
+    rm_duplicates_dist: FloatProperty(
             name="Merge Distance",
             description='Distance (in m) below which two vertices are merged when creating the export mesh',
             default=1e-7,

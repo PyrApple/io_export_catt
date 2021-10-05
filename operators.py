@@ -194,7 +194,7 @@ class MESH_OT_catt_export(Operator):
             bm.free()
 
         # remove duplicates
-        bmesh.ops.remove_doubles(bm_concat, verts = bm_concat.verts, dist = 1e-7)
+        bmesh.ops.remove_doubles(bm_concat, verts = bm_concat.verts, dist = catt_export.rm_duplicates_dist)
 
         # required lookup table rebuild
         # warning: may temper with the ordering of bmesh faces and its matching with built list bmesh_faces_info
