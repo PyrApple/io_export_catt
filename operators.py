@@ -276,7 +276,7 @@ from mathutils.geometry import (distance_point_to_plane, normal)
 
 
 class MESH_OT_catt_utils(Operator):
-    """A set of utilities for the Catt add-on"""
+    """Highlight non-planar faces of the active object"""
 
     # init locals
     bl_idname = "catt.utils"
