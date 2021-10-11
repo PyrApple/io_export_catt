@@ -50,33 +50,41 @@ class MESH_OT_catt_material_convert(Operator):
 
             # prepare rna ui (for soft lock, description, etc.)
             rna_dict['abs_{0}'.format(i_freq)] = {
-                "description": 'absorption coef at {0}'.format(utils.freq_to_str(freq)),
+                "description": 'Absorption coef at {0}'.format(utils.freq_to_str(freq)),
                 "default":40.0, "soft_min":0.0, "soft_max":100.0,
                 "min": 0.0, "max": 100.0
             }
             rna_dict['dif_{0}'.format(i_freq)] = {
-                "description": 'diffraction coef at {0}'.format(utils.freq_to_str(freq)),
+                "description": 'Diffraction coef at {0}'.format(utils.freq_to_str(freq)),
                 "default":50.0, "soft_min":0.0, "soft_max":100.0,
                 "min": 0.0, "max": 100.0
+            }
+
+        # add use diffraction flag
+        mat['use_diffraction'] = True
+        rna_dict['use_diffraction'] = {
+                "description": 'Use diffraction coefficients',
+                "default":0, "soft_min":0, "soft_max":1,
+                "min": 0, "max": 1
             }
 
         # add diff estimate flag and value
         mat['is_diff_estimate'] = False
         rna_dict['is_diff_estimate'] = {
-                "description": 'use diffraction estimate',
+                "description": 'Use diffraction estimate',
                 "default":0, "soft_min":0, "soft_max":1,
                 "min": 0, "max": 1
             }
         mat['diff_estimate'] = 0.1
         rna_dict['diff_estimate'] = {
-                "description": 'diffraction estimate value',
+                "description": 'Diffraction estimate value',
                 "default":0.1, "soft_min":0.0, "min": 0.0
             }
 
         # flag as catt material
         mat['is_catt_material'] = True
         rna_dict['is_diff_estimate'] = {
-                "description": 'flag material as a CATT material',
+                "description": 'Flag material as a CATT material',
                 "default":0, "soft_min":0, "soft_max":1,
                 "min": 0, "max": 1
             }
@@ -86,6 +94,37 @@ class MESH_OT_catt_material_convert(Operator):
 
         # disable use nodes (easier to access diffuse color that way)
         mat.use_nodes = False
+
+        return {'FINISHED'}
+
+
+class MESH_OT_catt_material_retro_compat(Operator):
+    """ operator used to convert material to catt material """
+
+    # init locals
+    bl_idname = "catt.convert_catt_material_from_old_to_new"
+    bl_label = "Convert to new Catt Material"
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init locals
+        catt_export = context.scene.catt_export
+
+        # get active material
+        mat = context.object.active_material
+        rna_dict = mat["_RNA_UI"]
+
+        # add use diffraction flag
+        mat['use_diffraction'] = True
+        rna_dict['use_diffraction'] = {
+                "description": 'Use diffraction coefficients',
+                "default":0, "soft_min":0, "soft_max":1,
+                "min": 0, "max": 1
+            }
+
+        # apply rna
+        mat["_RNA_UI"] = rna_dict
 
         return {'FINISHED'}
 
@@ -219,11 +258,13 @@ class MESH_OT_catt_export(Operator):
                 fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}>".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r)))
 
                 # diffraction
-                fw(" L ")
-                if mat['is_diff_estimate']:
-                    fw("<estimate({0})>".format(round(mat['diff_estimate'], 3)))
-                else:
-                    fw("<{0} {1} {2} {3} {4} {5} : {6} {7}>".format(round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r)))
+                if mat["use_diffraction"]:
+
+                    fw(" L ")
+                    if mat['is_diff_estimate']:
+                        fw("<estimate({0})>".format(round(mat['diff_estimate'], 3)))
+                    else:
+                        fw("<{0} {1} {2} {3} {4} {5} : {6} {7}>".format(round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r)))
 
                 fw(" {{{0} {1} {2}}} \n".format(int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
 

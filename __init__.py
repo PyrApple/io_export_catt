@@ -103,6 +103,7 @@ classes = (
 
     operators.MESH_OT_catt_export,
     operators.MESH_OT_catt_material_convert,
+    operators.MESH_OT_catt_material_retro_compat,
     operators.MESH_OT_catt_utils,
 )
 

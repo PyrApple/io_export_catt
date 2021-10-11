@@ -157,6 +157,14 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
 
                 return
 
+            # retro compatibility
+            if 'use_diffraction' not in mat:
+                row = layout.row()
+                row.label(text="Deprecated CATT material (missing use_diffraction property)", icon='ERROR')
+                row = layout.row()
+                row.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
+                return
+
             # define absorption coefficients
             row = layout.row()
             row.label(text="Absorption")
@@ -175,13 +183,25 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             row = layout.row()
             row.label(text="Diffraction")
 
+            # use diffraction?
+            rowsub = layout.row(align=True)
+            split = rowsub.split(factor=0.7)
+            colsub = split.column()
+            colsub.label(text="Use Diffraction")
+            colsub = split.column()
+            colsub.prop(mat,'["use_diffraction"]', text="")
+
+            # discard remainder if not use diffraction
+            if not mat['use_diffraction']:
+                return
+
             # use estimate?
             rowsub = layout.row(align=True)
-            split = rowsub.split(factor=0.3)
+            split = rowsub.split(factor=0.7)
+            colsub = split.column()
+            colsub.label(text="Use Estimated")
             colsub = split.column()
             colsub.prop(mat,'["is_diff_estimate"]', text="")
-            colsub = split.column()
-            colsub.label(text="Use estimated")
 
             if( mat['is_diff_estimate'] ):
                 rowsub = layout.row(align=True)
