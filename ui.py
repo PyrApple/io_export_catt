@@ -121,7 +121,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
 
         # init locals
         layout = self.layout
-        obj = context.object
+        obj = context.active_object
         catt_export = context.scene.catt_export
 
         # discard if no object selected
