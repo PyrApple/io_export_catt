@@ -1,5 +1,3 @@
-
-
 # CATT-Acoustic Export Utility
 
 Blender add-on to export scenes to CATT-Acoustic .GEO format
@@ -73,6 +71,11 @@ from https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 
 Adding a * to the end of an object name will flag its face for automatic edge scattering in CATT upon export. Adding a * to the end of a collection name will flag its direct children (only work on 1st level children) objects faces for automatic edge scattering in CATT upon export.
 
+## Weird face normal inversion during export
+
+If parts of the objects in the scene have their normals that gets inverted during the export (while others don't), it is likely because they have a negative scale. Select the object and use the "apply scale" operator.
+
+Note: worst case scenario, if the first object processed during the export (can be any in the scene) has a negative scale, and all the others have a positive scale, the normal of all but the first object will be reversed during export. Conclusion: keep objects scale positive.
 
 ## Using exported model in CATT-Acoustic
 
