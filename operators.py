@@ -198,69 +198,25 @@ class MESH_OT_catt_export(Operator):
         catt_export = bpy.context.scene.catt_export
         objects_copy = []
 
-        # todo:
-        # - find a join operation without using operators
-
         for obj in objects:
-
-            # print("original object:", obj.name)
-            # for modifier in obj.modifiers:
-            #     print("\t modifier:", modifier.name)
 
             # duplicate object
             obj_copy = obj.copy()
             obj_copy.data = obj_copy.data.copy() # make sure object data is not linked to original
-            # obj_copy.animation_data.action = obj_copy.animation_data.action.copy()
-
-            # print("copied object:", obj_copy.name)
-            # for modifier in obj_copy.modifiers:
-            #     print("\t modifier:", modifier.name)
-
-            # # set object active
-            # ctx['active_object'] = obj_copy
-
-            # # apply modifiers
-            # if catt_export.apply_modifiers:
-            #     for modifier in obj_copy.modifiers:
-            #         ctx['modifier'] = modifier
-            #         bpy.ops.object.modifier_apply(ctx, modifier = modifier.name)
-
-            # this operator will 'work' or 'operate' on the active object we just set
-            # bpy.ops.object.modifier_apply(modifier="my_modifier_name")
-
-            # apply transforms
-            # bpy.context['active_object'] = obj_copy
-            # bpy.context.view_layer.objects.active = obj_copy
-            # bpy.ops.object.transform_apply(location = True, rotation = True, scale = True)
-
-            # apply trasform
-            # obj_copy.data.transform(obj_copy.matrix_world)
-
-            # # apply transforms
-            # ctx['active_object'] = obj_copy
-            # bpy.ops.object.transform_apply(ctx, location = True, rotation = True, scale = True)
-
-            # # apply modifiers
-            # if catt_export.apply_modifiers:
-            #     apply_modifiers(obj_copy)
-
 
             # apply transform, triangulate, apply modifiers
             bm = utils.bmesh_copy_from_object(obj, transform=False, triangulate=catt_export.triangulate_faces, apply_modifiers=catt_export.apply_modifiers)
 
-            # # recalculate normals
-            # bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-
+            # copy back bmesh to mesh data
             bm.to_mesh(obj_copy.data)
             obj_copy.data.update()
             bm.free()
-            # obj_copy.modifiers.clear()
 
             # save to locals
             objects_copy.append(obj_copy)
 
-        # join objects
-        if len(objects_copy) > 1:
+        # is there a join operation to apply?
+        if catt_export.merge_objects and len(objects_copy) > 1:
 
             # create tmp context, to avoid changing current user selected object(s)
             ctx = bpy.context.copy()
@@ -277,85 +233,24 @@ class MESH_OT_catt_export(Operator):
             # get reference to created object
             concat_object = ctx['active_object']
 
-        else:
-            concat_object = objects_copy[0]
+            # remove duplicate vertices
+            if catt_export.rm_duplicates_dist > 0:
+                bm = bmesh.new()
+                bm.from_mesh(concat_object.data)
+                bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = catt_export.rm_duplicates_dist)
+                bm.to_mesh(concat_object.data)
+                concat_object.data.update()
+                bm.free()
 
-        # remove doubles
-        if catt_export.rm_duplicates_dist > 0:
-            bm = bmesh.new()
-            bm.from_mesh(concat_object.data)
-            bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = catt_export.rm_duplicates_dist)
-            bm.to_mesh(concat_object.data)
-            concat_object.data.update()
-            # bm.clear()
-            bm.free()
-
-        # # triangulate
-        # if catt_export.triangulate_faces:
-        #     bm = bmesh.new()
-        #     bm.from_mesh(concat_object.data)
-        #     bmesh.ops.triangulate(bm, faces=bm.faces)
-        #     bm.to_mesh(concat_object.data)
-        #     bm.free()
+            # create new list with only that object
+            objects_copy = [concat_object]
 
 
-        # return
-
-        # # convert objects to bmeshes, extract valuable face info for later
-        # for obj in objects:
-
-        #     # add object material names to global list
-        #     for mat in obj.data.materials:
-        #         if mat.name not in material_names:
-        #             material_names[mat.name] = mat
-
-        #     # convert obj to bmesh
-        #     bm = utils.bmesh_copy_from_object(obj, transform=True, triangulate=catt_export.triangulate_faces, apply_modifiers=catt_export.apply_modifiers)
-        #     bmeshes.append(bm)
-
-        #     # keep track of object collection
-        #     collection_name = '' if len(obj.users_collection) == 0 else obj.users_collection[0].name
-
-        #     # loop over faces
-        #     for face in bm.faces:
-
-        #         # keep track of face material
-        #         mat_name = obj.material_slots[face.material_index].material.name
-
-        #         # save face info to local
-        #         bmesh_faces_info.append({
-        #             'material_name' : mat_name,
-        #             'collection_name' : collection_name,
-        #             'object_name' : obj.name,
-        #             'face_index': face.index
-        #             })
-
-        # # concat into single mesh
-        # bm_concat = bmesh.new()
-        # mesh = bpy.data.meshes.new("tmp_mesh")
-        # for bm in bmeshes:
-        #     bm.to_mesh(mesh)
-        #     bm_concat.from_mesh(mesh)
-        #     bm.free()
-
-        # # concat into single mesh
-        # bm_concat = bmesh.new()
-        # [bm_concat.from_mesh(obj.data) for obj in objects]
-        # bmesh.ops.transform(bm_concat, matrix=obj.matrix_world, verts=bm.verts)
-
-        # # remove duplicates
-        # bmesh.ops.remove_doubles(bm_concat, verts = bm_concat.verts, dist = catt_export.rm_duplicates_dist)
-
-        # # required lookup table rebuild
-        # # warning: may temper with the ordering of bmesh faces and its matching with built list bmesh_faces_info
-        # # did not stumble onto this problem in tested scenarios yet
-        # bm_concat.faces.ensure_lookup_table()
-
-
-        # mesh_concat = bpy.data.meshes.new( "tmp_mesh_2" )
-        # bm_concat.to_mesh( mesh_concat )
-        # object_concat = bpy.data.objects.new( "new", mesh_concat )
-        # bpy.context.scene.collection.objects.link(object_concat)
+        # build list of materials used in objects (unique)
+        materials_to_export = []
+        for obj in objects_copy:
+            [materials_to_export.append(mat) for mat in obj.data.materials]
+        materials_to_export = list(set(materials_to_export)) # remove duplicates
 
         # open file
         with open(file_path, 'w', newline='\r\n') as data:
@@ -369,10 +264,10 @@ class MESH_OT_catt_export(Operator):
             # materials
             fw(';MATERIALS\n\n')
             r = 1 # round factor
-            for mat in concat_object.data.materials:
+            for mat in materials_to_export:
 
                 # absorption
-                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}>".format(mat.name, round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r)))
+                fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}>".format(utils.mat_name_to_str(mat.name), round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r)))
 
                 # diffraction
                 if mat["use_diffraction"]:
@@ -383,64 +278,71 @@ class MESH_OT_catt_export(Operator):
                     else:
                         fw("<{0} {1} {2} {3} {4} {5} : {6} {7}>".format(round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r)))
 
-                fw(" {{{0} {1} {2}}} \n".format(int(100*mat.diffuse_color[0]), int(100*mat.diffuse_color[1]), int(100*mat.diffuse_color[2])))
+                fw(" {{{0} {1} {2}}} \n".format(int(255*mat.diffuse_color[0]), int(255*mat.diffuse_color[1]), int(255*mat.diffuse_color[2])))
 
-            # vertices
+            # vertices header
             fw('\nCORNERS\n\n')
-            for vertice in concat_object.data.vertices:
-                coords = (concat_object.matrix_world @ vertice.co)
-                # coords = vertice.co
-                fw("{0} {1:.2f} {2:.2f} {3:.2f} \n".format(vertice.index + 1, coords[0], coords[1], coords[2]) )
 
-            # faces
+            vertex_index_offsets = [0] # first one has no offset
+            faces_index_offsets = [0] # first one has no offset
+
+            for obj in objects_copy[:-1]:
+                vertex_index_offsets.append( len(obj.data.vertices) + vertex_index_offsets[-1])
+                faces_index_offsets.append( len(obj.data.polygons) + faces_index_offsets[-1] )
+
+            for i_obj, obj in enumerate(objects_copy):
+
+                print(obj.name, vertex_index_offsets[i_obj])
+
+                for vertice in obj.data.vertices:
+
+                    coords = (obj.matrix_world @ vertice.co)
+                    # coords = vertice.co
+
+                    index = vertice.index + vertex_index_offsets[i_obj] + 1
+                    fw("{0} {1:.2f} {2:.2f} {3:.2f} \n".format(index, coords[0], coords[1], coords[2]) )
+
+
+            # faces header
             fw('\nPLANES\n\n')
-            for i_face, face in enumerate(concat_object.data.polygons):
 
-                # init locals
-                collection_name = '' if len(concat_object.users_collection) == 0 else concat_object.users_collection[0].name
-                object_name = concat_object.name
-                material_name = concat_object.material_slots[face.material_index].material.name
-                face_index = face.index
+            for i_obj, obj in enumerate(objects_copy):
 
-                # auto edge scattering if collection or object names end with '*'
-                edge_scattering_str = ''
-                if( len(collection_name) > 0 and collection_name[-1] == '*' ):
-                    edge_scattering_str = '*'
-                    collection_name = collection_name.rstrip('*')
-                if object_name[-1] == '*':
-                    object_name = object_name.rstrip('*')
-                    edge_scattering_str = '*'
+                for i_face, face in enumerate(obj.data.polygons):
 
-                # shape face name from collection and object names
-                # 'Master Collection' is the name of blender root collection
-                face_name = "{0}-{1}".format(object_name, face_index)
-                if collection_name not in ('', 'Master Collection'):
-                    face_name = "{0}-{1}".format(collection_name, face_name)
+                    # init locals
+                    collection_name = '' if len(obj.users_collection) == 0 else obj.users_collection[0].name
+                    object_name = obj.name
+                    material_name = utils.mat_name_to_str(obj.material_slots[face.material_index].material.name)
 
-                # get face vertice ids
-                # vertices_list = []
-                # for vertice in reversed(face.vertices):
-                #     vertices_list.append(vertice + 1)
-                vertices_list = [vertice + 1 for vertice in face.vertices]
-                vertices_list_str = ' '.join(map(str, vertices_list))
+                    # auto edge scattering if collection or object names end with '*'
+                    edge_scattering_str = ''
+                    if( len(collection_name) > 0 and collection_name[-1] == '*' ):
+                        edge_scattering_str = '*'
+                        collection_name = collection_name.rstrip('*')
+                    if object_name[-1] == '*':
+                        object_name = object_name.rstrip('*')
+                        edge_scattering_str = '*'
 
-                # write face line
-                fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + 1, face_name, vertices_list_str, material_name, edge_scattering_str) )
+                    # shape face name from collection and object names
+                    # 'Master Collection' is the name of blender root collection
+                    face_name = "{0}-{1}".format(object_name, face.index) # keep original face id (no offset here)
+                    if collection_name not in ('', 'Master Collection'):
+                        face_name = "{0}-{1}".format(collection_name, face_name)
 
-                # debug
-                print(face.index + 1, vertices_list_str)
+                    # get face vertice ids
+                    offset = vertex_index_offsets[i_obj] + 1
+                    vertices_list = [vertice + offset for vertice in face.vertices]
+                    vertices_list_str = ' '.join(map(str, vertices_list))
 
-        # free bmesh
-        # bm_concat.free()
+                    # write face line
+                    offset = faces_index_offsets[i_obj] + 1
+                    fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + offset, face_name, vertices_list_str, material_name, edge_scattering_str) )
 
-        # delete created object
-        # bpy.data.objects.remove(concat_object)
 
         # clean
         for obj in objects_copy:
-                bpy.data.objects.remove(obj)
-
-        # ctx['active_object'].delete()
+            bpy.data.objects.remove(obj)
 
         # # debug
         # print('remaining objects:')
@@ -458,7 +360,7 @@ from mathutils.geometry import (distance_point_to_plane, normal)
 
 
 class MESH_OT_catt_utils(Operator):
-    """Highlight non-planar faces of the active object"""
+    """Highlight non-planar faces of the active object (check is more strict than CATT's)"""
 
     # init locals
     bl_idname = "catt.utils"
@@ -521,7 +423,3 @@ class MESH_OT_catt_utils(Operator):
                 self.report({'INFO'}, 'No non-flat face detected.')
 
             return {'FINISHED'}
-
-
-
-

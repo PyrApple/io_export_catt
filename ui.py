@@ -98,9 +98,12 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         rowsub = col.row()
         rowsub.label(text="")
+
         rowsub = col.row(align=True)
-        rowsub.label(text="Remove doubles:")
+        rowsub.prop(catt_export, "merge_objects")
+
         rowsub = col.row(align=True)
+        rowsub.enabled = catt_export.merge_objects
         rowsub.prop(catt_export, "rm_duplicates_dist")
 
         rowsub = col.row()

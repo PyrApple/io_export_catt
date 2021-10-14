@@ -29,6 +29,12 @@ def freq_to_str(freq):
     # Hz
     return '{0}kHz'.format(int(freq/1000.0))
 
+
+def mat_name_to_str(mat_name):
+    """convert string material name to string that will correctly be interpreted by CATT"""
+
+    return mat_name.replace('.', '_')
+
 # method from the Print3D add-on: create a bmesh from an object (for triangulation, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
     """ returns a transformed, triangulated copy of the mesh """

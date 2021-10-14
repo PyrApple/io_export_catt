@@ -80,6 +80,11 @@ class SceneProperties(PropertyGroup):
             description='Apply objects modifiers upon export',
             default=False,
             )
+    merge_objects: BoolProperty(
+            name="Merge Objects",
+            description='Merge objects into single mesh upon export (enables remove duplicate vertices)',
+            default=False,
+            )
     frequency_bands: FloatVectorProperty(
             name="Frequency Bands",
             description='Frequency bands (in Hz) for which absorption/diffraction coefs are defined',
@@ -87,7 +92,7 @@ class SceneProperties(PropertyGroup):
             default=(125, 250, 500, 1000, 2000, 4000, 8000, 16000),
             )
     rm_duplicates_dist: FloatProperty(
-            name="Merge Distance",
+            name="Merge Vertices Distance",
             description='Distance (in m) below which two vertices are merged when creating the export mesh',
             default=1e-7,
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
