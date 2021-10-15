@@ -24,6 +24,58 @@ import bmesh
 from bpy.types import Operator
 from . import utils
 
+def get_material_template(context):
+
+    # init locals
+    mat = {}
+    catt_export = context.scene.catt_export
+
+    # is material converted to catt material (has all the required properties)
+    mat["is_catt_material"] = {
+        "description": 'Flag material as a CATT material',
+        "default":1, "soft_min":0, "soft_max":1,
+        "min": 0, "max": 1
+    }
+
+    # should material use diffraction coefficients upon export?
+    mat["use_diffraction"] = {
+        "description": 'Use diffraction coefficients',
+        "default":1, "soft_min":0, "soft_max":1,
+        "min": 0, "max": 1
+    }
+
+    # should material be exported with diff estimate option?
+    mat['is_diff_estimate'] = {
+        "description": 'Use diffraction estimate',
+        "default":0, "soft_min":0, "soft_max":1,
+        "min": 0, "max": 1
+    }
+
+    # if so, what is its diff estimate value?
+    mat['diff_estimate'] = {
+        "description": 'Diffraction estimate value',
+        "default":0.1, "soft_min":0.0, "min": 0.0
+    }
+
+
+    # loop over frequency bands
+    for i_freq, freq in enumerate(catt_export.frequency_bands):
+
+        # prepare rna ui (for soft lock, description, etc.)
+        mat['abs_{0}'.format(i_freq)] = {
+            "description": 'Absorption coef at {0}'.format(utils.freq_to_str(freq)),
+            "default":40.0, "soft_min":0.0, "soft_max":100.0,
+            "min": 0.0, "max": 100.0
+        }
+        mat['dif_{0}'.format(i_freq)] = {
+            "description": 'Diffraction coef at {0}'.format(utils.freq_to_str(freq)),
+            "default":50.0, "soft_min":0.0, "soft_max":100.0,
+            "min": 0.0, "max": 100.0
+        }
+
+    return mat
+
+
 class MESH_OT_catt_material_convert(Operator):
     """ operator used to convert material to catt material """
 
@@ -31,63 +83,27 @@ class MESH_OT_catt_material_convert(Operator):
     bl_idname = "catt.convert_to_catt_material"
     bl_label = "Convert to Catt Material"
 
+
     def execute(self, context):
         """ method called from ui """
 
         # init locals
         catt_export = context.scene.catt_export
-        rna_dict = {}
 
         # get active material
         mat = context.object.active_material
 
-        # loop over frequency bands
-        for i_freq, freq in enumerate(catt_export.frequency_bands):
+        # get material template
+        mat_template = get_material_template(context)
+        rna_dict = {}
 
-            # init property
-            mat['abs_{0}'.format(i_freq)] = 40.0
-            mat['dif_{0}'.format(i_freq)] = 50.0
+        for key, value in mat_template.items():
 
-            # prepare rna ui (for soft lock, description, etc.)
-            rna_dict['abs_{0}'.format(i_freq)] = {
-                "description": 'Absorption coef at {0}'.format(utils.freq_to_str(freq)),
-                "default":40.0, "soft_min":0.0, "soft_max":100.0,
-                "min": 0.0, "max": 100.0
-            }
-            rna_dict['dif_{0}'.format(i_freq)] = {
-                "description": 'Diffraction coef at {0}'.format(utils.freq_to_str(freq)),
-                "default":50.0, "soft_min":0.0, "soft_max":100.0,
-                "min": 0.0, "max": 100.0
-            }
+            # retro compatibility
+            if key not in mat:
+                mat[key] = value["default"]
 
-        # add use diffraction flag
-        mat['use_diffraction'] = True
-        rna_dict['use_diffraction'] = {
-                "description": 'Use diffraction coefficients',
-                "default":0, "soft_min":0, "soft_max":1,
-                "min": 0, "max": 1
-            }
-
-        # add diff estimate flag and value
-        mat['is_diff_estimate'] = False
-        rna_dict['is_diff_estimate'] = {
-                "description": 'Use diffraction estimate',
-                "default":0, "soft_min":0, "soft_max":1,
-                "min": 0, "max": 1
-            }
-        mat['diff_estimate'] = 0.1
-        rna_dict['diff_estimate'] = {
-                "description": 'Diffraction estimate value',
-                "default":0.1, "soft_min":0.0, "min": 0.0
-            }
-
-        # flag as catt material
-        mat['is_catt_material'] = True
-        rna_dict['is_diff_estimate'] = {
-                "description": 'Flag material as a CATT material',
-                "default":0, "soft_min":0, "soft_max":1,
-                "min": 0, "max": 1
-            }
+            rna_dict[key] = value
 
         # apply rna
         mat["_RNA_UI"] = rna_dict
@@ -98,35 +114,44 @@ class MESH_OT_catt_material_convert(Operator):
         return {'FINISHED'}
 
 
-class MESH_OT_catt_material_retro_compat(Operator):
-    """ operator used to convert material to catt material """
+# class MESH_OT_catt_material_retro_compat(Operator):
+#     """ operator used to convert material to catt material """
 
-    # init locals
-    bl_idname = "catt.convert_catt_material_from_old_to_new"
-    bl_label = "Convert to new Catt Material"
+#     # init locals
+#     bl_idname = "catt.convert_catt_material_from_old_to_new"
+#     bl_label = "Convert to new Catt Material"
 
-    def execute(self, context):
-        """ method called from ui """
+#     def execute(self, context):
+#         """ method called from ui """
 
-        # init locals
-        catt_export = context.scene.catt_export
+#         # init locals
+#         catt_export = context.scene.catt_export
 
-        # get active material
-        mat = context.object.active_material
-        rna_dict = mat["_RNA_UI"]
+#         # get active material
+#         mat = context.object.active_material
+#         rna_dict = mat["_RNA_UI"]
 
-        # add use diffraction flag
-        mat['use_diffraction'] = True
-        rna_dict['use_diffraction'] = {
-                "description": 'Use diffraction coefficients',
-                "default":0, "soft_min":0, "soft_max":1,
-                "min": 0, "max": 1
-            }
+#         # get template material
+#         mat_template = get_material_template(context)
 
-        # apply rna
-        mat["_RNA_UI"] = rna_dict
+#         # loop over required fields
+#         for key, value in mat_template.items():
 
-        return {'FINISHED'}
+#             # add if missing
+#             if key not in mat:
+#                 mat[key] = value["default"]
+#                 rna_dict[key] = value
+
+#             else:
+#                 # fix if corrupted (without updating value itself, assumes type doesn't change)
+#                 if rna_dict[key] != value:
+#                     rna_dict[key] = value
+
+#         # apply rna
+#         mat["_RNA_UI"] = rna_dict
+
+#         # exit
+#         return {'FINISHED'}
 
 
 class MESH_OT_catt_export(Operator):
@@ -141,6 +166,9 @@ class MESH_OT_catt_export(Operator):
 
         # init local
         catt_export = context.scene.catt_export
+
+        # update deprecated materials if need be
+        self.update_deprecated_catt_materials(context)
 
         # get list of objects to export (meshes visible in viewport)
         objects = [obj for obj in bpy.context.view_layer.objects if obj.visible_get() and obj.type == 'MESH']
@@ -188,6 +216,50 @@ class MESH_OT_catt_export(Operator):
 
         # exit
         self.report({'INFO'}, 'CATT export complete')
+        return {'FINISHED'}
+
+
+    def update_deprecated_catt_materials(self, context):
+        """Update properties of all catt materials to latest version"""
+
+        # init locals
+        catt_export = context.scene.catt_export
+        mat_template = get_material_template(context)
+
+        # print("----------------------------------------")
+        # loop over materials in scene
+        for mat in bpy.data.materials:
+
+            # discard if not a catt material
+            if "is_catt_material" not in mat:
+                continue
+
+            # copy rna
+            rna_dict = mat["_RNA_UI"]
+
+            # for key in rna_dict:
+            #     print("-", key, rna_dict[key])
+
+            # loop over required fields
+            for key, value in mat_template.items():
+
+                # add if missing
+                if key not in mat:
+                    print("++ key not found, adding key", key, "to", mat.name)
+                    mat[key] = value["default"]
+                    rna_dict[key] = value
+
+                # # fix if corrupted (without updating value itself, assumes type doesn't change)
+                # elif rna_dict[key] != value:
+                #     print("deprecated key found, updating key", key, "of", mat.name)
+                #     print("\t", rna_dict[key], "->", value)
+
+                #     rna_dict[key] = value
+
+            # apply rna
+            mat["_RNA_UI"] = rna_dict
+
+        # exit
         return {'FINISHED'}
 
 
@@ -291,8 +363,6 @@ class MESH_OT_catt_export(Operator):
                 faces_index_offsets.append( len(obj.data.polygons) + faces_index_offsets[-1] )
 
             for i_obj, obj in enumerate(objects_copy):
-
-                print(obj.name, vertex_index_offsets[i_obj])
 
                 for vertice in obj.data.vertices:
 

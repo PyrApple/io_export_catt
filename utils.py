@@ -19,11 +19,12 @@
 import bmesh
 import bpy
 
+
 def freq_to_str(freq):
     """convert float freqency to string"""
 
     # kHz
-    if( freq < 1000.0 ):
+    if freq < 1000.0:
         return '{0}Hz'.format(int(freq))
 
     # Hz
@@ -35,7 +36,9 @@ def mat_name_to_str(mat_name):
 
     return mat_name.replace('.', '_')
 
-# method from the Print3D add-on: create a bmesh from an object (for triangulation, apply modifiers, etc.)
+
+# method from the Print3D add-on: create a bmesh from an object
+# (for triangulation, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
     """ returns a transformed, triangulated copy of the mesh """
 

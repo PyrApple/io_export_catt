@@ -143,11 +143,11 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             if not mat:
                 return
 
-            # retro compatibility
-            if 'cattMaterial' in mat:
-                row = layout.row()
-                row.label(text="Deprecated CATT material", icon='ERROR')
-                return
+            # # retro compatibility
+            # if 'cattMaterial' in mat:
+            #     row = layout.row()
+            #     row.label(text="Deprecated CATT material", icon='ERROR')
+            #     return
 
             # material is not a catt material
             if 'is_catt_material' not in mat:
@@ -160,13 +160,13 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
 
                 return
 
-            # retro compatibility
-            if 'use_diffraction' not in mat:
-                row = layout.row()
-                row.label(text="Deprecated CATT material (missing use_diffraction property)", icon='ERROR')
-                row = layout.row()
-                row.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
-                return
+            # # retro compatibility
+            # if 'use_diffraction' not in mat:
+            #     row = layout.row()
+            #     row.label(text="Deprecated CATT material", icon='ERROR')
+            #     row = layout.row()
+            #     row.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
+            #     return
 
             # define absorption coefficients
             row = layout.row()
