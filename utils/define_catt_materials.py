@@ -14,7 +14,10 @@ mat_dict['smallwall'] = {'abs': [ 2, 3.2, 4, 5, 6.4, 7 ], 'estimate': 0.03}
 mat_dict['roof'] = {'abs': [ 2, 3.2, 4, 5, 6.4, 7 ], 'dif': [30, 40, 50, 60, 70, 80]}
 
 # select dummy object for active material swap
-bpy.context.view_layer.objects.active = bpy.context.scene.objects['Todelete']
+m = bpy.data.meshes.new('todeleteMesh')
+obj = bpy.data.objects.new("todeleteObject", m)
+bpy.context.collection.objects.link(obj)
+bpy.context.view_layer.objects.active = bpy.context.scene.objects['todeleteObject']
 
 # loop over materials
 for mat in bpy.data.materials:
@@ -64,3 +67,8 @@ for mat in bpy.data.materials:
 
                 # assign
                 mat['dif_{0}'.format(i_freq)] = v
+
+
+# delete tmp object used for active material swap
+obj = bpy.data.objects['todeleteObject']
+bpy.data.objects.remove(obj, do_unlink=True)

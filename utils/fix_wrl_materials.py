@@ -3,6 +3,8 @@ Script for fixing WRL imported scenes (exported from CATT). The script will loop
 the materials present in the scene, and rename them based on matching rgb values found
 in mat_dict. Fill mat_dict with CATT material name as keys and values matching that
 defined in the original CATT scene as values before running.
+
+WARNING: do not modify the imported scene before running that script (e.g. don't go merging all faces into a single mesh)
 """
 
 import bpy

@@ -66,6 +66,7 @@ from https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 - open the Overlays popover in the 3D View Overlays popover (top right of the 3D view)
 - look for the label Developer and tick the check box ``Indices``
 
+To track down those faces CATT reports as non-planar in Blender, use these indices and a .GEO file exported with the option "Merge Objects" disabled, as enabling this option messes with face ids during export.
 
 ## Flag faces for automatic edge scattering in CATT
 
