@@ -112,6 +112,12 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         rowsub = col.row(align=True)
         rowsub.operator("catt.export", text="Export", icon='EXPORT')
 
+        rowsub = col.row(align=True)
+        rowsub.prop(catt_export, "debug")
+
+        # rowsub = col.row(align=True)
+        # rowsub.prop(catt_export, "export_progress", slider=True)
+        # rowsub.enabled = False
 
 class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
     """ panel material """

@@ -97,6 +97,17 @@ class SceneProperties(PropertyGroup):
             default=1e-7,
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
             )
+    debug: BoolProperty(
+            name="Write Logs To Console",
+            description='Print progress log to blender console during export',
+            default=False,
+            )
+    # export_progress: IntProperty(
+    #         name="Progress", description="",
+    #         default=0,
+    #         min=0, max=100,
+    #         step=1, subtype='PERCENTAGE'
+    #         )
 
 
 classes = (

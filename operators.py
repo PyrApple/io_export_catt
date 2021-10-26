@@ -270,7 +270,11 @@ class MESH_OT_catt_export(Operator):
         catt_export = bpy.context.scene.catt_export
         objects_copy = []
 
-        for obj in objects:
+        for i_obj, obj in enumerate(objects):
+
+            # debug log
+            if catt_export.debug:
+                print('copying objects {0}/{1}: {2}'.format(i_obj+1, len(objects), obj.name))
 
             # duplicate object
             obj_copy = obj.copy()
@@ -290,6 +294,10 @@ class MESH_OT_catt_export(Operator):
         # is there a join operation to apply?
         if catt_export.merge_objects and len(objects_copy) > 1:
 
+            # debug log
+            if catt_export.debug:
+                print('merging objects')
+
             # create tmp context, to avoid changing current user selected object(s)
             ctx = bpy.context.copy()
 
@@ -307,6 +315,11 @@ class MESH_OT_catt_export(Operator):
 
             # remove duplicate vertices
             if catt_export.rm_duplicates_dist > 0:
+
+                # debug
+                if catt_export.debug:
+                    print('merging neighbor vertices')
+
                 bm = bmesh.new()
                 bm.from_mesh(concat_object.data)
                 bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = catt_export.rm_duplicates_dist)
@@ -336,7 +349,12 @@ class MESH_OT_catt_export(Operator):
             # materials
             fw(';MATERIALS\n\n')
             r = 1 # round factor
-            for mat in materials_to_export:
+
+            for i_mat, mat in enumerate(materials_to_export):
+
+                # debug log
+                if catt_export.debug:
+                    print('exporting materials {0}/{1}: {2} '.format(i_mat+1, len(materials_to_export), mat.name))
 
                 # absorption
                 fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}>".format(utils.mat_name_to_str(mat.name), round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r)))
@@ -364,6 +382,10 @@ class MESH_OT_catt_export(Operator):
 
             for i_obj, obj in enumerate(objects_copy):
 
+                # debug log
+                if catt_export.debug:
+                    print('exporting vertices {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
+
                 for vertice in obj.data.vertices:
 
                     coords = (obj.matrix_world @ vertice.co)
@@ -377,6 +399,10 @@ class MESH_OT_catt_export(Operator):
             fw('\nPLANES\n\n')
 
             for i_obj, obj in enumerate(objects_copy):
+
+                # debug log
+                if catt_export.debug:
+                    print('exporting faces {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
 
                 for i_face, face in enumerate(obj.data.polygons):
 
@@ -411,7 +437,9 @@ class MESH_OT_catt_export(Operator):
 
 
         # clean
-        for obj in objects_copy:
+        for i_obj, obj in enumerate(objects_copy):
+            if catt_export.debug:
+                print('deleting copied objects {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
             bpy.data.objects.remove(obj)
 
         # # debug
