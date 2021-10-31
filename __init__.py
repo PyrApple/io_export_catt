@@ -40,7 +40,7 @@ else:
             # IntProperty,
             FloatProperty,
             FloatVectorProperty,
-            # EnumProperty,
+            EnumProperty,
             PointerProperty,
             )
     from bpy.types import (
@@ -53,6 +53,15 @@ else:
             operators,
             utils,
             )
+
+
+import bpy
+def get_embedded_text_names(self, context):
+    out = []
+    out.append(("DISABLED", "Disabled", "", 1))
+    for i_key, key in enumerate(bpy.data.texts.keys()):
+        out.append((key, key, "", i_key+1))
+    return out
 
 
 class SceneProperties(PropertyGroup):
@@ -108,6 +117,11 @@ class SceneProperties(PropertyGroup):
     #         min=0, max=100,
     #         step=1, subtype='PERCENTAGE'
     #         )
+    editor_scripts: EnumProperty(
+            name="Embedded Texts List",
+            description="Select an embedded text, its content will be added as comments at the top of the exported .GEO file",
+            items=get_embedded_text_names,
+            )
 
 
 classes = (

@@ -75,8 +75,8 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         col = layout.column(align=True)
 
-        # rowsub = col.row(align=True)
-        # rowsub.label(text="Path And File Name")
+        rowsub = col.row(align=True)
+        rowsub.label(text="Export Path")
 
         rowsub = col.row()
         rowsub.prop(catt_export, "export_path", text="")
@@ -86,6 +86,15 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         rowsub = col.row()
         rowsub.prop(catt_export, "master_file_name", text="")
+
+        rowsub = col.row()
+        rowsub.label(text="")
+
+        rowsub = col.row(align=True)
+        rowsub.label(text="Import Comments From Text")
+
+        rowsub = col.row()
+        rowsub.prop(catt_export, "editor_scripts", text="")
 
         rowsub = col.row()
         rowsub.label(text="")
