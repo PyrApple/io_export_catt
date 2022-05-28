@@ -166,8 +166,8 @@ class MESH_OT_catt_import(Operator, ImportHelper):
 
     # filter files visible in loading popup
     filter_glob: StringProperty( default='*.GEO;*.geo;', options={'HIDDEN'} )
-
     # some_boolean: BoolProperty( name='Do a thing', description='Do a thing with the file you\'ve selected', default=True)
+
 
     def execute(self, context):
         """ method called from ui """
@@ -176,10 +176,6 @@ class MESH_OT_catt_import(Operator, ImportHelper):
         # catt_export = context.scene.catt_export
 
         # debug
-        # filename, extension = os.path.splitext(self.filepath)
-        # print('Selected file:', self.filepath)
-        # print('File name:', filename)
-        # print('File extension:', extension)
         # print('Some Boolean:', self.some_boolean)
 
         # parse data from geo file
@@ -191,6 +187,27 @@ class MESH_OT_catt_import(Operator, ImportHelper):
         filename, extension = os.path.splitext( os.path.basename(self.filepath) )
         collection_name = filename
         utils.create_objects_from_parsed_geo_file(vertices, faces, materials, collection_name)
+
+        # convert materials to catt materials
+        for material_name in materials.keys():
+
+            # init locals
+            mat = bpy.data.materials[ material_name ]
+            mat_template = get_material_template(context)
+            rna_dict = {}
+
+            # loop over material properties, assign default
+            for key, value in mat_template.items():
+                if key not in mat: mat[key] = value["default"]
+                rna_dict[key] = value
+
+            # apply rna
+            mat["_RNA_UI"] = rna_dict
+
+            # update values based on material abs/scat/etc.
+            for i_freq in range(len(materials[material_name]['absorption'])):
+                mat['abs_{0}'.format(i_freq)] = materials[material_name]['absorption'][i_freq]
+                mat['dif_{0}'.format(i_freq)] = materials[material_name]['scattering'][i_freq]
 
         return {'FINISHED'}
 

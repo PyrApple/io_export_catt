@@ -75,7 +75,7 @@ def parse_geo_file(filepath):
     materials = dict()
     vertices = dict()
     faces = dict()
-    is_erroneous_linebreak_detected = False
+    error_detected = False
 
     # loop over lines
     with open(filepath, "r") as file_reader:
@@ -91,7 +91,7 @@ def parse_geo_file(filepath):
             # print(line_split)
 
             # line: material definition
-            if( line_split[0] == 'ABS' ):
+            if( line_split[0].lower() == 'abs' ):
 
                 # extract data: material name
                 material_name = line_split[1]
@@ -102,8 +102,14 @@ def parse_geo_file(filepath):
 
                 # extract data: absorption, scattering, and color
                 absorption = [float(x) for x in line_num[0:8]]
-                scattering = [float(x) for x in line_num[8:16]]
-                color = [round(float(x)/255.0, 3) for x in line_num[16:19]]
+                if( 'estimate' in line[line.index("=")::] ): # check for "estimate" in line, ignoring material name
+                    scattering = [0 for x in range(8)] # dummy zeros
+                    color = [round(float(x)/255.0, 3) for x in line_num[9:12]]
+                    error_detected = True
+                    print("\nERROR: defining material scattering with estimate(..) at line", line_id, "is not supported")
+                else:
+                    scattering = [float(x) for x in line_num[8:16]]
+                    color = [round(float(x)/255.0, 3) for x in line_num[16:19]]
                 color.append(1.0) # alpha
 
                 # save to locals
@@ -135,7 +141,7 @@ def parse_geo_file(filepath):
                     index_close = line.index("]")
                 except ValueError:
                     print("\nERROR: Unexpected line break at line", line_id, "\n->", line + "Face import discarded\n")
-                    is_erroneous_linebreak_detected = True
+                    error_detected = True
                     continue
 
                 # shape data
@@ -158,7 +164,7 @@ def parse_geo_file(filepath):
                 # # debug
                 # print("face: ", face_id, face_name, face_vertices, face_material)
 
-    return [vertices, faces, materials, is_erroneous_linebreak_detected]
+    return [vertices, faces, materials, error_detected]
 
 
 def create_objects_from_parsed_geo_file(vertices, faces, materials, collection_name='catt import'):
