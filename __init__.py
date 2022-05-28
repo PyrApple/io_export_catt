@@ -128,9 +128,11 @@ classes = (
     SceneProperties,
 
     ui.VIEW3D_PT_catt_instruction,
+    ui.VIEW3D_PT_catt_import,
     ui.VIEW3D_PT_catt_export,
     ui.VIEW3D_PT_catt_material,
 
+    operators.MESH_OT_catt_import,
     operators.MESH_OT_catt_export,
     operators.MESH_OT_catt_material_convert,
     # operators.MESH_OT_catt_material_retro_compat,

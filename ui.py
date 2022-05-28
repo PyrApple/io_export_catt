@@ -46,18 +46,45 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
 
         # init locals
         layout = self.layout
+        catt_export = context.scene.catt_export
 
         row = layout.row()
-        row.label(text="Assign CATT materials")
+        row.label(text="- Assign CATT materials")
 
         row = layout.row()
-        row.label(text="Check normal orientations")
+        row.label(text="- Check normal orientations")
 
         row = layout.row()
-        row.label(text="Assert flat faces (or triangulate)")
+        row.label(text="- Assert flat faces (or triangulate)")
 
         row = layout.row()
         row.operator("catt.utils", text="Detect Non-Planar faces", icon="XRAY").arg = 'check_nonflat_faces' # 'SURFACE_DATA', 'XRAY', 'MOD_WARP'
+
+        row = layout.row()
+        row.label(text="")
+
+        row = layout.row()
+        row.prop(catt_export, "debug")
+
+
+class VIEW3D_PT_catt_import(View3DCattPanel, Panel):
+    """ panel import """
+
+    # title
+    bl_label = "Import"
+
+    def draw(self, context):
+        """ method called upon ui draw """
+
+        # init locals
+        layout = self.layout
+        # catt_export = context.scene.catt_export
+
+        col = layout.column(align=True)
+
+        rowsub = col.row(align=True)
+        rowsub.operator("catt.import", text="Import", icon='FILE_FOLDER')
+
 
 
 class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
@@ -120,9 +147,6 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         rowsub = col.row(align=True)
         rowsub.operator("catt.export", text="Export", icon='EXPORT')
-
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "debug")
 
         # rowsub = col.row(align=True)
         # rowsub.prop(catt_export, "export_progress", slider=True)

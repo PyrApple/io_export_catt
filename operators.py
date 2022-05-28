@@ -154,6 +154,47 @@ class MESH_OT_catt_material_convert(Operator):
 #         return {'FINISHED'}
 
 
+from bpy_extras.io_utils import ImportHelper
+from bpy.props import (StringProperty, BoolProperty)
+
+class MESH_OT_catt_import(Operator, ImportHelper):
+    """Import geometry and materials from .GEO file"""
+
+    # init locals
+    bl_idname = "catt.import"
+    bl_label = "Catt Import"
+
+    # filter files visible in loading popup
+    filter_glob: StringProperty( default='*.GEO;*.geo;', options={'HIDDEN'} )
+
+    # some_boolean: BoolProperty( name='Do a thing', description='Do a thing with the file you\'ve selected', default=True)
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        # catt_export = context.scene.catt_export
+
+        # debug
+        # filename, extension = os.path.splitext(self.filepath)
+        # print('Selected file:', self.filepath)
+        # print('File name:', filename)
+        # print('File extension:', extension)
+        # print('Some Boolean:', self.some_boolean)
+
+        # parse data from geo file
+        [vertices, faces, materials, is_error_detected] = utils.parse_geo_file(self.filepath)
+        if( is_error_detected ):
+            self.report({'ERROR'}, 'Look into the console for more info')
+
+        # create objects from parsed data
+        filename, extension = os.path.splitext( os.path.basename(self.filepath) )
+        collection_name = filename
+        utils.create_objects_from_parsed_geo_file(vertices, faces, materials, collection_name)
+
+        return {'FINISHED'}
+
+
 class MESH_OT_catt_export(Operator):
     """Export objects of every collection included in the View Layer"""
 
