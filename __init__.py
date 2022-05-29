@@ -106,6 +106,11 @@ class SceneProperties(PropertyGroup):
             default=1e-7,
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
             )
+    export_face_ids: BoolProperty(
+            name="Export Face IDs",
+            description='Add face id information in exported plane names (for debug purpose)',
+            default=False,
+            )
     debug: BoolProperty(
             name="Write Logs To Console",
             description='Print progress log to blender console during export',

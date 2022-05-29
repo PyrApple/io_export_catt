@@ -83,7 +83,7 @@ class VIEW3D_PT_catt_import(View3DCattPanel, Panel):
         col = layout.column(align=True)
 
         rowsub = col.row(align=True)
-        rowsub.operator("catt.import", text="Import", icon='FILE_FOLDER')
+        rowsub.operator("catt.import", text="Import", icon='IMPORT')
 
 
 
@@ -134,6 +134,9 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         rowsub = col.row()
         rowsub.label(text="")
+
+        rowsub = col.row(align=True)
+        rowsub.prop(catt_io, "export_face_ids")
 
         rowsub = col.row(align=True)
         rowsub.prop(catt_io, "merge_objects")
