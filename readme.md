@@ -1,11 +1,16 @@
-# CATT-Acoustic Export Utility
+# CATT-Acoustic Import/Export Utility
 
-Blender add-on to export scenes to CATT-Acoustic .GEO format
+Blender add-on to import and export scenes to CATT-Acoustic .GEO format
 
 
-## How to use
+## How to use: Export to CATT (.blend -> .GEO)
 
 Add objects to the scene, assign materials to these objects, convert those materials to CATT materials and press the export button. Only those objects in collections not excluded from the view layer will be included in the export. Upon export, all the objects concerned are merged, and a "remove duplicate vertices" operation is applied on the resulting mesh. The add-on only supports mesh export to .GEO: sources and receivers will not be taken into account.
+
+
+## How to use: Import to Blender (.GEO -> .blend)
+
+Export the project to a .GEO file from TUCT, to create a transpiled version of the original .GEO (replacing potential CATT meta language with explicit coordinates). Use the import button from the Blender add-on panel to import this .GEO file as a collection in the Blender scene. The add-on will group planes with identical names into single objects.
 
 
 ## Export syntax
@@ -15,7 +20,7 @@ The exported .GEO file contains a list of objects faces (named "planes" in CATT)
 ### Material
 
 format:
-``abs material_name = <absorption_coefficients> L <scattering_coefficients> {rgb_color}``
+``abs material_name = <absorption_coefficients> L <diffraction_coefficients> {rgb_color}``
 
 example:
 ``abs Concrete = <1.0 2.0 3.0 4.0 5.0 6.0 : 7.0 8.0> L <10.0 11.0 12.0 13.0 14.0 15.0 : 16.0 17.0> {1 80 1}``
@@ -36,9 +41,9 @@ format:
 example:
 ``[ 10 OuterShell-Room-9 / 62 57 60 65 37 66 / Concrete* ]``
 
-``plane_name`` is assembled from the name of the collection to which belongs the object (if any), the name of the object, and the original id of the face/plane in blender before export (overwritten during the merge into a single object):
-``plane_name = collection_name-object_name-original_face_id``
-See below for instructions on how to display faces ids in blender view port.
+``plane_name`` is assembled from the name of the collection to which belongs the object (if any), the name of the object, and the original id of the face/plane in blender before export (overwritten during the merge into a single object): ``plane_name = collection_name-object_name-original_face_id``. See below for instructions on how to display faces ids in blender view port.
+
+Disabling the option "Export Face IDs" in the add-on panel will remove face IDs from plane names during export.
 
 
 ## Geometry check
@@ -56,7 +61,7 @@ CATT can only handle flat faces/planes. If the model contains non-flat faces, it
 – and/or look in the properties menu (N key) in edit mode, and use "mesh analysis" > type: distortion, which will let you see the ill-conditioned faces.
 - and/or use the 3D Print add-on, set a low angle into "distortion" and press the check button to see the ill-conditioned faces
 
-### Show faces id in blender viewport
+### Show faces id in blender view port
 
 from https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 
@@ -68,9 +73,9 @@ from https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 
 To track down those faces CATT reports as non-planar in Blender, use these indices and a .GEO file exported with the option "Merge Objects" disabled, as enabling this option messes with face ids during export.
 
-## Flag faces for automatic edge scattering in CATT
+## Flag faces for automatic edge diffraction in CATT
 
-Adding a * to the end of an object name will flag its face for automatic edge scattering in CATT upon export. Adding a * to the end of a collection name will flag its direct children (only work on 1st level children) objects faces for automatic edge scattering in CATT upon export.
+Adding a * to the end of an object name will flag its face for automatic edge diffraction in CATT upon export. Adding a * to the end of a collection name will flag its direct children (only work on 1st level children) objects faces for automatic edge diffraction in CATT upon export.
 
 ## Weird face normal inversion during export
 
@@ -83,7 +88,7 @@ Note: worst case scenario, if the first object processed during the export (can 
 Remove default audience plane in CATT, else model import will raise an error because first face in model is not necessarily horizontal (while audience plane should be)
 
 
-## Export CATT model to Blender
+## How to use: Import (DEPRECATED)
 
 This operation is not a feature of the add-on, simply a list of steps to follow if one needs to import an existing CATT model into Blender.
 
