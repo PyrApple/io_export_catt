@@ -484,16 +484,21 @@ class MESH_OT_catt_export(Operator):
 
             for i_obj, obj in enumerate(objects_copy):
 
+                # get handle to original object (for original name and collection access)
+                # warning: may misbehave with merging option
+                obj_original = objects[i_obj]
+
                 # debug log
                 if catt_io.debug:
-                    print('exporting faces {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
+                    print('exporting faces {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj_original.name))
 
                 for i_face, face in enumerate(obj.data.polygons):
 
                     # init locals
-                    collection_name = '' if len(obj.users_collection) == 0 else obj.users_collection[0].name
-                    object_name = obj.name
+                    # had to use original object here (otherwise copy doesn't belong to any collection)
+                    collection_name = '' if len(obj_original.users_collection) == 0 else obj_original.users_collection[0].name
                     material_name = utils.mat_name_to_str(obj.material_slots[face.material_index].material.name)
+                    object_name = obj_original.name
 
                     # auto edge diffraction if collection or object names end with '*'
                     edge_diffraction_str = ''
