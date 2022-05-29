@@ -189,7 +189,7 @@ class MESH_OT_catt_import(Operator, ImportHelper):
         utils.create_objects_from_parsed_geo_file(vertices, faces, materials, collection_name)
 
         # convert materials to catt materials
-        for material_name in materials.keys():
+        for material_name, material in materials.items():
 
             # init locals
             mat = bpy.data.materials[ material_name ]
@@ -205,9 +205,12 @@ class MESH_OT_catt_import(Operator, ImportHelper):
             mat["_RNA_UI"] = rna_dict
 
             # update values based on material abs/scat/etc.
-            for i_freq in range(len(materials[material_name]['absorption'])):
-                mat['abs_{0}'.format(i_freq)] = materials[material_name]['absorption'][i_freq]
-                mat['dif_{0}'.format(i_freq)] = materials[material_name]['diffraction'][i_freq]
+            for i_freq in range(len(material['absorption'])):
+                mat['abs_{0}'.format(i_freq)] = material['absorption'][i_freq]
+                mat['dif_{0}'.format(i_freq)] = material['diffraction'][i_freq]
+
+            mat['is_diff_estimate'] = material['is_diff_estimate']
+            mat['diff_estimate'] = material['diff_estimate']
 
         return {'FINISHED'}
 

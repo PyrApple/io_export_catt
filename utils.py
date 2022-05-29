@@ -93,32 +93,78 @@ def parse_geo_file(filepath):
             # line: material definition
             if( line_split[0].lower() == 'abs' ):
 
-                # extract data: material name
+                # init locals
+                nFreq = 8
+                material = {'absorption': [0.0]*nFreq, 'diffraction': [0.0]*nFreq, 'color': [0, 0, 0], 'use_diffraction': True, 'is_diff_estimate': False, 'diff_estimate': 0.0}
+
+                # extract data: material name (assumes no spaces)
                 material_name = line_split[1]
 
-                # shape data (keep only digits strings in array)
-                line_num = [''.join(c for c in x if (c.isdigit() or c =='.')) for x in line_split[2::]]
-                line_num = list( filter(None, line_num) )
+                # prepare absorption and diffraction extraction
+                abs_index_start = line.index('<')
+                abs_index_end = line.index('>')
+                dif_index_start = line[abs_index_end+1::].index('<') + abs_index_end + 1
+                dif_index_end = line[abs_index_end+1::].index('>') + abs_index_end + 1
 
-                # extract data: absorption, diffraction, and color
-                absorption = [float(x) for x in line_num[0:8]]
-                if( 'estimate' in line[line.index("=")::] ): # check for "estimate" in line, ignoring material name
-                    diffraction = [0 for x in range(8)] # dummy zeros
-                    color = [round(float(x)/255.0, 3) for x in line_num[9:12]]
+                # extract data: absorption
+                absorption = onlyDigitList( line[abs_index_start:abs_index_end].split() )
+
+                # deal with incomplete absorption definition
+                if( len( absorption ) < nFreq ):
+
+                    # pad with last value
+                    last_value = absorption[-1]
+                    for i in range(nFreq-len( absorption )): absorption.append(last_value)
+
+                    # log error
                     error_detected = True
-                    print("\nERROR: defining material diffraction with estimate(..) at line", line_id, "is not supported")
-                else:
-                    diffraction = [float(x) for x in line_num[8:16]]
-                    color = [round(float(x)/255.0, 3) for x in line_num[16:19]]
-                color.append(1.0) # alpha
+                    print("\nWARNING: expecting 8 freq. bands absorption definition at line", line_id, "\n-> padding high frequencies with last band value")
 
-                # save to locals
-                materials[material_name] = {'absorption': absorption, 'diffraction': diffraction, 'color': color}
+                # extract data: store absorption to locals
+                material['absorption'] = absorption
+
+                # extract data: diffraction
+                diffraction = onlyDigitList( line[dif_index_start:dif_index_end].split() )
+                if( dif_index_start == 0 ):
+
+                    # diffraction not defined
+                    material['use_diffraction'] = False
+
+                elif( 'estimate' in line[dif_index_start:dif_index_end] ):
+
+                    # material diffraction is defined using catt "estimate(..)" syntax
+                    material['is_diff_estimate'] = True
+                    material['diff_estimate'] = diffraction[0]
+
+                else:
+
+                    # diffraction is defined using classic (per band) syntax
+                    if( len( diffraction ) < nFreq ):
+
+                        # pad with last value
+                        last_value = diffraction[-1]
+                        for i in range(nFreq-len( diffraction )): diffraction.append(last_value)
+
+                        # log error
+                        error_detected = True
+                        print("\nWARNING: expecting 8 freq. bands diffraction definition at line", line_id, "\n-> padding high frequencies with last band value")
+
+                    # update locals
+                    material['diffraction'] = diffraction
+
+                # color definition
+                color = onlyDigitList( line[dif_index_end::].split() )
+                color = [round(float(x)/255.0, 3) for x in color]
+                color.append(1.0) # alpha
+                material['color'] = color
+
+                # save material to locals
+                materials[material_name] = material
 
                 # # debug
                 # print("material:", material_name, absorption, diffraction, color)
 
-            # line: vertice (corner) definition
+            # line: vertex (corner) definition
             elif( line_split[0].isnumeric() ):
 
                 # extract data
@@ -130,7 +176,7 @@ def parse_geo_file(filepath):
                 vertices[vertice_id] = {'xyz': vertice_xyz}
 
                 # # debug
-                # print("vertice:", vertice_id, vertice_xyz)
+                # print("vertex:", vertice_id, vertice_xyz)
 
             # line: face (plane) definition
             elif( line_split[0][0] == "[" ):
@@ -165,6 +211,15 @@ def parse_geo_file(filepath):
                 # print("face: ", face_id, face_name, face_vertices, face_material)
 
     return [vertices, faces, materials, error_detected]
+
+
+def onlyDigitList(list_in):
+
+    list_str = [''.join(c for c in x if (c.isdigit() or c =='.')) for x in list_in]
+    list_str = list( filter(None, list_str) )
+    list_float = [float(x) for x in list_str]
+
+    return list_float
 
 
 def create_objects_from_parsed_geo_file(vertices, faces, materials, collection_name='catt import'):
