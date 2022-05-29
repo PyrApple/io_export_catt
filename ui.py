@@ -46,7 +46,7 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
 
         # init locals
         layout = self.layout
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
 
         row = layout.row()
         row.label(text="- Assign CATT materials")
@@ -64,7 +64,7 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
         row.label(text="")
 
         row = layout.row()
-        row.prop(catt_export, "debug")
+        row.prop(catt_io, "debug")
 
 
 class VIEW3D_PT_catt_import(View3DCattPanel, Panel):
@@ -78,7 +78,7 @@ class VIEW3D_PT_catt_import(View3DCattPanel, Panel):
 
         # init locals
         layout = self.layout
-        # catt_export = context.scene.catt_export
+        # catt_io = context.scene.catt_io
 
         col = layout.column(align=True)
 
@@ -98,7 +98,7 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
 
         # init locals
         layout = self.layout
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
 
         col = layout.column(align=True)
 
@@ -106,13 +106,13 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         rowsub.label(text="Export Path")
 
         rowsub = col.row()
-        rowsub.prop(catt_export, "export_path", text="")
+        rowsub.prop(catt_io, "export_path", text="")
 
         # rowsub = col.row(align=True)
         # rowsub.label(text="Exported .GEO file name:")
 
         rowsub = col.row()
-        rowsub.prop(catt_export, "master_file_name", text="")
+        rowsub.prop(catt_io, "master_file_name", text="")
 
         rowsub = col.row()
         rowsub.label(text="")
@@ -121,26 +121,26 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         rowsub.label(text="Import Comments From Text")
 
         rowsub = col.row()
-        rowsub.prop(catt_export, "editor_scripts", text="")
+        rowsub.prop(catt_io, "editor_scripts", text="")
 
         rowsub = col.row()
         rowsub.label(text="")
 
         rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "triangulate_faces")
+        rowsub.prop(catt_io, "triangulate_faces")
 
         rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "apply_modifiers")
+        rowsub.prop(catt_io, "apply_modifiers")
 
         rowsub = col.row()
         rowsub.label(text="")
 
         rowsub = col.row(align=True)
-        rowsub.prop(catt_export, "merge_objects")
+        rowsub.prop(catt_io, "merge_objects")
 
         rowsub = col.row(align=True)
-        rowsub.enabled = catt_export.merge_objects
-        rowsub.prop(catt_export, "rm_duplicates_dist")
+        rowsub.enabled = catt_io.merge_objects
+        rowsub.prop(catt_io, "rm_duplicates_dist")
 
         rowsub = col.row()
         rowsub.label(text="")
@@ -149,7 +149,7 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         rowsub.operator("catt.export", text="Export", icon='EXPORT')
 
         # rowsub = col.row(align=True)
-        # rowsub.prop(catt_export, "export_progress", slider=True)
+        # rowsub.prop(catt_io, "export_progress", slider=True)
         # rowsub.enabled = False
 
 class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
@@ -164,7 +164,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
         # init locals
         layout = self.layout
         obj = context.active_object
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
 
         # discard if no object selected
         if not obj:
@@ -212,7 +212,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             row.label(text="Absorption")
 
             # loop over frequencies
-            for i_freq, freq in enumerate(catt_export.frequency_bands):
+            for i_freq, freq in enumerate(catt_io.frequency_bands):
                 rowsub = layout.row(align=True)
                 rowsub.label(text=utils.freq_to_str(freq))
                 rowsub.prop(mat,'["abs_{0}"]'.format(i_freq), text="")
@@ -251,7 +251,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
                 rowsub.prop(mat,'["diff_estimate"]', text="")
             else:
                 # loop over frequencies
-                for i_freq, freq in enumerate(catt_export.frequency_bands):
+                for i_freq, freq in enumerate(catt_io.frequency_bands):
                     rowsub = layout.row(align=True)
                     rowsub.label(text=utils.freq_to_str(freq))
                     rowsub.prop(mat,'["dif_{0}"]'.format(i_freq), text="")

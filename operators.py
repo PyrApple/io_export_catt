@@ -28,7 +28,7 @@ def get_material_template(context):
 
     # init locals
     mat = {}
-    catt_export = context.scene.catt_export
+    catt_io = context.scene.catt_io
 
     # is material converted to catt material (has all the required properties)
     mat["is_catt_material"] = {
@@ -59,7 +59,7 @@ def get_material_template(context):
 
 
     # loop over frequency bands
-    for i_freq, freq in enumerate(catt_export.frequency_bands):
+    for i_freq, freq in enumerate(catt_io.frequency_bands):
 
         # prepare rna ui (for soft lock, description, etc.)
         mat['abs_{0}'.format(i_freq)] = {
@@ -88,7 +88,7 @@ class MESH_OT_catt_material_convert(Operator):
         """ method called from ui """
 
         # init locals
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
 
         # get active material
         mat = context.object.active_material
@@ -125,7 +125,7 @@ class MESH_OT_catt_material_convert(Operator):
 #         """ method called from ui """
 
 #         # init locals
-#         catt_export = context.scene.catt_export
+#         catt_io = context.scene.catt_io
 
 #         # get active material
 #         mat = context.object.active_material
@@ -173,7 +173,7 @@ class MESH_OT_catt_import(Operator, ImportHelper):
         """ method called from ui """
 
         # init local
-        # catt_export = context.scene.catt_export
+        # catt_io = context.scene.catt_io
 
         # debug
         # print('Some Boolean:', self.some_boolean)
@@ -223,7 +223,7 @@ class MESH_OT_catt_export(Operator):
         """ method called from ui """
 
         # init local
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
 
         # update deprecated materials if need be
         self.update_deprecated_catt_materials(context)
@@ -265,8 +265,8 @@ class MESH_OT_catt_export(Operator):
 
 
         # get export path
-        export_path = bpy.path.abspath(catt_export.export_path)
-        file_name = catt_export.master_file_name
+        export_path = bpy.path.abspath(catt_io.export_path)
+        file_name = catt_io.master_file_name
         file_path = os.path.join(export_path, file_name)
 
         # export objects
@@ -281,7 +281,7 @@ class MESH_OT_catt_export(Operator):
         """Update properties of all catt materials to latest version"""
 
         # init locals
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
         mat_template = get_material_template(context)
 
         # print("----------------------------------------")
@@ -325,13 +325,13 @@ class MESH_OT_catt_export(Operator):
         """ export list of objects to catt geo file """
 
         # init locals
-        catt_export = bpy.context.scene.catt_export
+        catt_io = bpy.context.scene.catt_io
         objects_copy = []
 
         for i_obj, obj in enumerate(objects):
 
             # debug log
-            if catt_export.debug:
+            if catt_io.debug:
                 print('copying objects {0}/{1}: {2}'.format(i_obj+1, len(objects), obj.name))
 
             # duplicate object
@@ -339,7 +339,7 @@ class MESH_OT_catt_export(Operator):
             obj_copy.data = obj_copy.data.copy() # make sure object data is not linked to original
 
             # apply transform, triangulate, apply modifiers
-            bm = utils.bmesh_copy_from_object(obj, transform=False, triangulate=catt_export.triangulate_faces, apply_modifiers=catt_export.apply_modifiers)
+            bm = utils.bmesh_copy_from_object(obj, transform=False, triangulate=catt_io.triangulate_faces, apply_modifiers=catt_io.apply_modifiers)
 
             # copy back bmesh to mesh data
             bm.to_mesh(obj_copy.data)
@@ -350,10 +350,10 @@ class MESH_OT_catt_export(Operator):
             objects_copy.append(obj_copy)
 
         # is there a join operation to apply?
-        if catt_export.merge_objects and len(objects_copy) > 1:
+        if catt_io.merge_objects and len(objects_copy) > 1:
 
             # debug log
-            if catt_export.debug:
+            if catt_io.debug:
                 print('merging objects')
 
             # create tmp context, to avoid changing current user selected object(s)
@@ -372,15 +372,15 @@ class MESH_OT_catt_export(Operator):
             concat_object = ctx['active_object']
 
             # remove duplicate vertices
-            if catt_export.rm_duplicates_dist > 0:
+            if catt_io.rm_duplicates_dist > 0:
 
                 # debug
-                if catt_export.debug:
+                if catt_io.debug:
                     print('merging neighbor vertices')
 
                 bm = bmesh.new()
                 bm.from_mesh(concat_object.data)
-                bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = catt_export.rm_duplicates_dist)
+                bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = catt_io.rm_duplicates_dist)
                 bm.to_mesh(concat_object.data)
                 concat_object.data.update()
                 bm.free()
@@ -406,14 +406,14 @@ class MESH_OT_catt_export(Operator):
             fw('; {0} \n\n\n'.format(bpy.data.filepath))
 
             # header from embedded script
-            if( catt_export.editor_scripts in bpy.data.texts.keys() ):
+            if( catt_io.editor_scripts in bpy.data.texts.keys() ):
 
                 # header
                 fw('; COMMENTS \n')
-                fw('; (generated from embedded script: {0}) \n\n'.format(catt_export.editor_scripts))
+                fw('; (generated from embedded script: {0}) \n\n'.format(catt_io.editor_scripts))
 
                 # get text
-                text = bpy.data.texts[catt_export.editor_scripts]
+                text = bpy.data.texts[catt_io.editor_scripts]
 
                 # dump whole text
                 # fw(text.as_string() + '\n\n')
@@ -431,7 +431,7 @@ class MESH_OT_catt_export(Operator):
             for i_mat, mat in enumerate(materials_to_export):
 
                 # debug log
-                if catt_export.debug:
+                if catt_io.debug:
                     print('exporting materials {0}/{1}: {2} '.format(i_mat+1, len(materials_to_export), mat.name))
 
                 # absorption
@@ -463,7 +463,7 @@ class MESH_OT_catt_export(Operator):
             for i_obj, obj in enumerate(objects_copy):
 
                 # debug log
-                if catt_export.debug:
+                if catt_io.debug:
                     print('exporting vertices {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
 
                 for vertice in obj.data.vertices:
@@ -482,7 +482,7 @@ class MESH_OT_catt_export(Operator):
             for i_obj, obj in enumerate(objects_copy):
 
                 # debug log
-                if catt_export.debug:
+                if catt_io.debug:
                     print('exporting faces {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
 
                 for i_face, face in enumerate(obj.data.polygons):
@@ -519,7 +519,7 @@ class MESH_OT_catt_export(Operator):
 
         # clean
         for i_obj, obj in enumerate(objects_copy):
-            if catt_export.debug:
+            if catt_io.debug:
                 print('deleting copied objects {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
             bpy.data.objects.remove(obj)
 
@@ -552,7 +552,7 @@ class MESH_OT_catt_utils(Operator):
         """ method called from ui """
 
         # init local
-        catt_export = context.scene.catt_export
+        catt_io = context.scene.catt_io
 
         # check for non flat faces
         if self.arg == 'check_nonflat_faces':

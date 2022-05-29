@@ -17,11 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "CATT-Acoustic export utility",
+    "name": "CATT-Acoustic GEO format",
     "author": "David Poirier-Quinot",
     "blender": (2, 93, 0),
     "location": "3D View > Sidebar",
-    "description": "Utility for exporting Blender scenes to CATT-Acoustic GEO files",
+    "description": "Import-Export GEO files to work with CATT-Acoustic",
     "doc_url": "https://github.com/PyrApple/io_export_catt/blob/master/readme.md",
     "support": 'COMMUNITY',
     "category": "Mesh"}
@@ -144,11 +144,11 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.catt_export = PointerProperty(type=SceneProperties)
+    bpy.types.Scene.catt_io = PointerProperty(type=SceneProperties)
 
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Scene.catt_export
+    del bpy.types.Scene.catt_io
