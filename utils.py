@@ -198,11 +198,18 @@ def parse_geo_file(filepath):
                 index_slash_1 = line_split.index("/")
                 index_slash_2 = line_split.index("/", index_slash_1+1, len(line_split)-1)
 
-                # extract ata
+                # extract data
                 face_id = int( line_split[0] )
                 obj_name = ' '.join(line_split[1:index_slash_1])
                 face_vertices = [int(x)-1 for x in line_split[(index_slash_1+1):index_slash_2]]
                 face_material = line_split[-1]
+
+                # deal with automatic edge diffraction syntax
+                # ('*' at end of material name, that need to be moved to end of object name to be preserved in blender scene for next export)
+                # note: can't use material names with * at the end in original CATT scene
+                if( face_material[-1] == '*' ):
+                    face_material = face_material[:-1] # remove last character
+                    obj_name = obj_name + '*'
 
                 # save to locals
                 faces[face_id] = {'obj_name': obj_name, 'vertices': face_vertices, 'material': face_material}
