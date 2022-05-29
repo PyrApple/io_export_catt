@@ -207,7 +207,7 @@ class MESH_OT_catt_import(Operator, ImportHelper):
             # update values based on material abs/scat/etc.
             for i_freq in range(len(materials[material_name]['absorption'])):
                 mat['abs_{0}'.format(i_freq)] = materials[material_name]['absorption'][i_freq]
-                mat['dif_{0}'.format(i_freq)] = materials[material_name]['scattering'][i_freq]
+                mat['dif_{0}'.format(i_freq)] = materials[material_name]['diffraction'][i_freq]
 
         return {'FINISHED'}
 
@@ -492,14 +492,14 @@ class MESH_OT_catt_export(Operator):
                     object_name = obj.name
                     material_name = utils.mat_name_to_str(obj.material_slots[face.material_index].material.name)
 
-                    # auto edge scattering if collection or object names end with '*'
-                    edge_scattering_str = ''
+                    # auto edge diffraction if collection or object names end with '*'
+                    edge_diffraction_str = ''
                     if( len(collection_name) > 0 and collection_name[-1] == '*' ):
-                        edge_scattering_str = '*'
+                        edge_diffraction_str = '*'
                         collection_name = collection_name.rstrip('*')
                     if object_name[-1] == '*':
                         object_name = object_name.rstrip('*')
-                        edge_scattering_str = '*'
+                        edge_diffraction_str = '*'
 
                     # shape face name from collection and object names
                     # 'Master Collection' is the name of blender root collection
@@ -514,7 +514,7 @@ class MESH_OT_catt_export(Operator):
 
                     # write face line
                     offset = faces_index_offsets[i_obj] + 1
-                    fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + offset, face_name, vertices_list_str, material_name, edge_scattering_str) )
+                    fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + offset, face_name, vertices_list_str, material_name, edge_diffraction_str) )
 
 
         # clean

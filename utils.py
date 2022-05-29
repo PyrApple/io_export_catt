@@ -100,23 +100,23 @@ def parse_geo_file(filepath):
                 line_num = [''.join(c for c in x if (c.isdigit() or c =='.')) for x in line_split[2::]]
                 line_num = list( filter(None, line_num) )
 
-                # extract data: absorption, scattering, and color
+                # extract data: absorption, diffraction, and color
                 absorption = [float(x) for x in line_num[0:8]]
                 if( 'estimate' in line[line.index("=")::] ): # check for "estimate" in line, ignoring material name
-                    scattering = [0 for x in range(8)] # dummy zeros
+                    diffraction = [0 for x in range(8)] # dummy zeros
                     color = [round(float(x)/255.0, 3) for x in line_num[9:12]]
                     error_detected = True
-                    print("\nERROR: defining material scattering with estimate(..) at line", line_id, "is not supported")
+                    print("\nERROR: defining material diffraction with estimate(..) at line", line_id, "is not supported")
                 else:
-                    scattering = [float(x) for x in line_num[8:16]]
+                    diffraction = [float(x) for x in line_num[8:16]]
                     color = [round(float(x)/255.0, 3) for x in line_num[16:19]]
                 color.append(1.0) # alpha
 
                 # save to locals
-                materials[material_name] = {'absorption': absorption, 'scattering': scattering, 'color': color}
+                materials[material_name] = {'absorption': absorption, 'diffraction': diffraction, 'color': color}
 
                 # # debug
-                # print("material:", material_name, absorption, scattering, color)
+                # print("material:", material_name, absorption, diffraction, color)
 
             # line: vertice (corner) definition
             elif( line_split[0].isnumeric() ):
