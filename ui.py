@@ -26,7 +26,7 @@ class View3DCattPanel:
     """ common panel """
 
     # init locals
-    bl_category = "CATT"
+    bl_category = "Catt"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
 

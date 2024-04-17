@@ -17,14 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "CATT-Acoustic GEO format",
+    "name": "CATT-Acoustic",
     "author": "David Poirier-Quinot",
     "blender": (2, 93, 0),
     "location": "3D View > Sidebar",
-    "description": "Import-Export GEO files to work with CATT-Acoustic",
+    "description": "Transfer data between CATT-Acoustic and Blender",
     "doc_url": "https://github.com/PyrApple/io_export_catt/blob/master/readme.md",
     "support": 'COMMUNITY',
-    "category": "Mesh"}
+    "category": "Import-Export"}
 
 if "bpy" in locals():
     import importlib
