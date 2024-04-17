@@ -67,15 +67,15 @@ def get_embedded_text_names(self, context):
 class SceneProperties(PropertyGroup):
 
     export_path: StringProperty(
-            name="Export Directory",
+            name="Folder",
             description="Path to the directory where the file will be saved",
             default="//",
             maxlen=1024,
             subtype="DIR_PATH",
             )
-    master_file_name: StringProperty(
-            name="Export File Name",
-            description="Name of the file created upon export",
+    room_file_name: StringProperty(
+            name="File",
+            description="Name of the room file created upon export",
             default="MASTER.GEO",
             maxlen=1024,
             )
@@ -112,8 +112,8 @@ class SceneProperties(PropertyGroup):
             default=False,
             )
     debug: BoolProperty(
-            name="Write Logs To Console",
-            description='Print progress log to blender console during export',
+            name="Debug",
+            description='Print logs to blender console',
             default=False,
             )
     # export_progress: IntProperty(
@@ -123,22 +123,39 @@ class SceneProperties(PropertyGroup):
     #         step=1, subtype='PERCENTAGE'
     #         )
     editor_scripts: EnumProperty(
-            name="Embedded Texts List",
+            name="Comments",
             description="Select an embedded text, its content will be added as comments at the top of the exported .GEO file",
             items=get_embedded_text_names,
+            )
+    source_file_name: StringProperty(
+            name="File",
+            description="Name of the source file created upon export",
+            default="SRC.LOC",
+            maxlen=1024,
+            )
+    source_object: StringProperty(
+        name="Source",
+        description="Object which animation will be exported as source positions",
+        default="", maxlen=1024,
+    )
+    source_dist_thresh: FloatProperty(
+            name="Min Distance",
+            description="Minimum distance (in m) between two exported positions along animation curve",
+            default=0,
+            min=0.0, max=100.0, soft_min=0.0, soft_max=100.0,
             )
 
 
 classes = (
     SceneProperties,
 
-    ui.VIEW3D_PT_catt_instruction,
-    ui.VIEW3D_PT_catt_import,
-    ui.VIEW3D_PT_catt_export,
+    # ui.VIEW3D_PT_catt_info,
+    ui.VIEW3D_PT_catt_main,
     ui.VIEW3D_PT_catt_material,
 
     operators.MESH_OT_catt_import,
-    operators.MESH_OT_catt_export,
+    operators.MESH_OT_catt_export_room,
+    operators.MESH_OT_catt_export_source,
     operators.MESH_OT_catt_material_convert,
     # operators.MESH_OT_catt_material_retro_compat,
     operators.MESH_OT_catt_utils,

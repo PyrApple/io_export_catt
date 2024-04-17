@@ -18,6 +18,7 @@
 
 # Interface for this addon.
 
+import bpy
 from bpy.types import Panel
 from . import utils
 
@@ -35,11 +36,11 @@ class View3DCattPanel:
         return True
 
 
-class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
-    """ panel utilities """
+class VIEW3D_PT_catt_info(View3DCattPanel, Panel):
+    """ panel information """
 
     # title
-    bl_label = "Utilities"
+    bl_label = "Info"
 
     def draw(self, context):
         """ method called upon ui draw """
@@ -57,41 +58,12 @@ class VIEW3D_PT_catt_instruction(View3DCattPanel, Panel):
         row = layout.row()
         row.label(text="- Assert flat faces (or triangulate)")
 
-        row = layout.row()
-        row.operator("catt.utils", text="Detect Non-Planar faces", icon="XRAY").arg = 'check_nonflat_faces' # 'SURFACE_DATA', 'XRAY', 'MOD_WARP'
 
-        row = layout.row()
-        row.label(text="")
-
-        row = layout.row()
-        row.prop(catt_io, "debug")
-
-
-class VIEW3D_PT_catt_import(View3DCattPanel, Panel):
-    """ panel import """
+class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
+    """ panel main """
 
     # title
-    bl_label = "Import"
-
-    def draw(self, context):
-        """ method called upon ui draw """
-
-        # init locals
-        layout = self.layout
-        # catt_io = context.scene.catt_io
-
-        col = layout.column(align=True)
-
-        rowsub = col.row(align=True)
-        rowsub.operator("catt.import", text="Import", icon='IMPORT')
-
-
-
-class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
-    """ panel export """
-
-    # title
-    bl_label = "Export"
+    bl_label = "Catt"
 
     def draw(self, context):
         """ method called upon ui draw """
@@ -99,61 +71,79 @@ class VIEW3D_PT_catt_export(View3DCattPanel, Panel):
         # init locals
         layout = self.layout
         catt_io = context.scene.catt_io
+        ui_elmt_offset = 0.6
 
-        col = layout.column(align=True)
+        # Globals
+        box = layout.box()
+        box.label(text="Preferences", icon="PREFERENCES")
 
-        rowsub = col.row(align=True)
-        rowsub.label(text="Export Path")
+        row = box.row()
+        row.prop(catt_io, "export_path")
 
-        rowsub = col.row()
-        rowsub.prop(catt_io, "export_path", text="")
+        row = box.row()
+        row.prop(catt_io, "debug")
 
-        # rowsub = col.row(align=True)
-        # rowsub.label(text="Exported .GEO file name:")
+        # Room import/export
+        box = layout.box()
+        box.label(text="Room", icon="CUBE")
 
-        rowsub = col.row()
-        rowsub.prop(catt_io, "master_file_name", text="")
+        row = box.row()
+        row.operator("catt.import", text="Import Room", icon='IMPORT')
+        row.ui_units_y += 1 + ui_elmt_offset
 
-        rowsub = col.row()
-        rowsub.label(text="")
+        row = box.row()
+        row.prop(catt_io, "room_file_name")
 
-        rowsub = col.row(align=True)
-        rowsub.label(text="Import Comments From Text")
+        row = box.row()
+        row.prop(catt_io, "editor_scripts")
 
-        rowsub = col.row()
-        rowsub.prop(catt_io, "editor_scripts", text="")
+        row.ui_units_y += 1 + ui_elmt_offset
 
-        rowsub = col.row()
-        rowsub.label(text="")
+        row = box.row(align=True)
+        row.operator("catt.utils", text="Detect Non-Planar faces", icon="XRAY").arg = 'check_nonflat_faces' # 'SURFACE_DATA', 'XRAY', 'MOD_WARP'
 
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_io, "triangulate_faces")
+        row = box.row(align=True)
+        row.prop(catt_io, "triangulate_faces")
 
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_io, "apply_modifiers")
+        row = box.row(align=True)
+        row.prop(catt_io, "apply_modifiers")
 
-        rowsub = col.row()
-        rowsub.label(text="")
+        row = box.row(align=True)
+        row.prop(catt_io, "export_face_ids")
 
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_io, "export_face_ids")
+        row = box.row(align=True)
+        row.prop(catt_io, "merge_objects")
 
-        rowsub = col.row(align=True)
-        rowsub.prop(catt_io, "merge_objects")
+        row = box.row(align=True)
+        row.enabled = catt_io.merge_objects
+        row.prop(catt_io, "rm_duplicates_dist")
 
-        rowsub = col.row(align=True)
-        rowsub.enabled = catt_io.merge_objects
-        rowsub.prop(catt_io, "rm_duplicates_dist")
+        row.ui_units_y += 1 + ui_elmt_offset
 
-        rowsub = col.row()
-        rowsub.label(text="")
+        row = box.row(align=True)
+        row.operator("catt.export_room", text="Export Room", icon='EXPORT')
 
-        rowsub = col.row(align=True)
-        rowsub.operator("catt.export", text="Export", icon='EXPORT')
+        # row = col.row(align=True)
+        # row.prop(catt_io, "export_progress", slider=True)
+        # row.enabled = False
 
-        # rowsub = col.row(align=True)
-        # rowsub.prop(catt_io, "export_progress", slider=True)
-        # rowsub.enabled = False
+
+        # Source export
+        box = layout.box()
+        box.label(text="Source", icon="SPEAKER")
+
+        row = box.row()
+        row.prop(catt_io, "source_file_name")
+
+        row = box.row(align=True)
+        row.prop_search(catt_io, "source_object", bpy.data, "objects")
+
+        row = box.row(align=True)
+        row.prop(catt_io, "source_dist_thresh")
+
+        row = box.row(align=True)
+        row.operator("catt.export_source", text="Export Source", icon='EXPORT')
+
 
 class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
     """ panel material """
@@ -174,7 +164,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             return
 
         # material datablock manager
-        row = layout.row()
+        box = layout.row()
         layout.template_ID_preview(obj, "active_material")
 
         # if object has materials
@@ -187,50 +177,50 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
 
             # # retro compatibility
             # if 'cattMaterial' in mat:
-            #     row = layout.row()
-            #     row.label(text="Deprecated CATT material", icon='ERROR')
+            #     box = layout.row()
+            #     box.label(text="Deprecated CATT material", icon='ERROR')
             #     return
 
             # material is not a catt material
             if 'is_catt_material' not in mat:
 
-                row = layout.row()
-                row.label(text="Not a CATT material", icon='ERROR')
+                box = layout.row()
+                box.label(text="Not a CATT material", icon='ERROR')
 
-                row = layout.row()
-                row.operator("catt.convert_to_catt_material", text="Convert to CATT material")
+                box = layout.row()
+                box.operator("catt.convert_to_catt_material", text="Convert to CATT material")
 
                 return
 
             # # retro compatibility
             # if 'use_diffraction' not in mat:
-            #     row = layout.row()
-            #     row.label(text="Deprecated CATT material", icon='ERROR')
-            #     row = layout.row()
-            #     row.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
+            #     box = layout.row()
+            #     box.label(text="Deprecated CATT material", icon='ERROR')
+            #     box = layout.row()
+            #     box.operator("catt.convert_catt_material_from_old_to_new", text="Convert to new CATT material")
             #     return
 
             # define absorption coefficients
-            row = layout.row()
-            row.label(text="Absorption")
+            box = layout.row()
+            box.label(text="Absorption")
 
             # loop over frequencies
             for i_freq, freq in enumerate(catt_io.frequency_bands):
-                rowsub = layout.row(align=True)
-                rowsub.label(text=utils.freq_to_str(freq))
-                rowsub.prop(mat,'["abs_{0}"]'.format(i_freq), text="")
+                row = layout.row(align=True)
+                row.label(text=utils.freq_to_str(freq))
+                row.prop(mat,'["abs_{0}"]'.format(i_freq), text="")
 
             # empty space
-            row = layout.row(align=True)
-            row.label(text="")
+            box = layout.row(align=True)
+            box.label(text="")
 
             # define diffraction coefficients
-            row = layout.row()
-            row.label(text="Diffraction")
+            box = layout.row()
+            box.label(text="Diffraction")
 
             # use diffraction?
-            rowsub = layout.row(align=True)
-            split = rowsub.split(factor=0.7)
+            row = layout.row(align=True)
+            split = row.split(factor=0.7)
             colsub = split.column()
             colsub.label(text="Use Diffraction")
             colsub = split.column()
@@ -241,21 +231,21 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
                 return
 
             # use estimate?
-            rowsub = layout.row(align=True)
-            split = rowsub.split(factor=0.7)
+            row = layout.row(align=True)
+            split = row.split(factor=0.7)
             colsub = split.column()
             colsub.label(text="Use Estimated")
             colsub = split.column()
             colsub.prop(mat,'["is_diff_estimate"]', text="")
 
             if( mat['is_diff_estimate'] ):
-                rowsub = layout.row(align=True)
-                rowsub.label(text="estimated")
-                rowsub.prop(mat,'["diff_estimate"]', text="")
+                row = layout.row(align=True)
+                row.label(text="estimated")
+                row.prop(mat,'["diff_estimate"]', text="")
             else:
                 # loop over frequencies
                 for i_freq, freq in enumerate(catt_io.frequency_bands):
-                    rowsub = layout.row(align=True)
-                    rowsub.label(text=utils.freq_to_str(freq))
-                    rowsub.prop(mat,'["dif_{0}"]'.format(i_freq), text="")
+                    row = layout.row(align=True)
+                    row.label(text=utils.freq_to_str(freq))
+                    row.prop(mat,'["dif_{0}"]'.format(i_freq), text="")
 

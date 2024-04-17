@@ -20,6 +20,8 @@
 
 import os
 import bpy
+import mathutils
+import math
 import bmesh
 from bpy.types import Operator
 from . import utils
@@ -215,12 +217,12 @@ class MESH_OT_catt_import(Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class MESH_OT_catt_export(Operator):
-    """Export objects of every collection included in the View Layer"""
+class MESH_OT_catt_export_room(Operator):
+    """Export objects of every collection included in the View Layer to .GEO file"""
 
     # init locals
-    bl_idname = "catt.export"
-    bl_label = "Catt Export"
+    bl_idname = "catt.export_room"
+    bl_label = "Catt Export Room"
 
     def execute(self, context):
         """ method called from ui """
@@ -269,7 +271,7 @@ class MESH_OT_catt_export(Operator):
 
         # get export path
         export_path = bpy.path.abspath(catt_io.export_path)
-        file_name = catt_io.master_file_name
+        file_name = catt_io.room_file_name
         file_path = os.path.join(export_path, file_name)
 
         # export objects
@@ -277,6 +279,72 @@ class MESH_OT_catt_export(Operator):
 
         # exit
         self.report({'INFO'}, 'CATT export complete')
+        return {'FINISHED'}
+
+
+class MESH_OT_catt_export_source(Operator):
+    """Export object as one or many sources if animation mode selected"""
+
+    # init locals
+    bl_idname = "catt.export_source"
+    bl_label = "Catt Export Source"
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        scene = context.scene
+        catt_io = context.scene.catt_io
+        round_factor = 2 # round factor applied on values
+        source = scene.objects[catt_io.source_object]
+
+        # open output file
+        export_path = bpy.path.abspath(catt_io.export_path)
+        file_name = catt_io.source_file_name
+        file_path = os.path.join(export_path, file_name)
+        file = open(file_path,'w')
+
+        # loop over frames: init
+        scene_frame_original = scene.frame_current
+        source_id = 1
+        previous_export_loc = mathutils.Vector([math.inf, math.inf, math.inf])
+
+        # loop over frames
+        for frame in range(scene.frame_start, scene.frame_end):
+
+            # set new current frame
+            scene.frame_set(frame)
+
+            # skip if new location too close from previous one exported
+            loc = source.location
+            if( (previous_export_loc - loc).length < catt_io.source_dist_thresh ):
+                continue
+
+            # update locals
+            previous_export_loc = mathutils.Vector([loc.x, loc.y, loc.z])
+
+            # shape line
+            s = ""
+            s += f'{source_id:02}' + " "
+            s += str(round(loc.x, round_factor)) + " " + str(round(loc.y, round_factor)) + " " + str(round(loc.z, round_factor)) + " "
+            # rot = object.rotation_euler
+            # s += str(round(rot.x,r)) + " " + str(round(rot.y,r)) + " " + str(round(rot.z,r))
+
+            # write to file
+            s += "\n"
+            file.write(s)
+
+            # increment counters
+            source_id += 1
+
+        # write to file
+        if catt_io.debug: print('file saved to:', filePath)
+        file.close()
+
+        # reset scene frame
+        scene.frame_set(scene_frame_original)
+
+        self.report({'INFO'}, "Source export complete")
         return {'FINISHED'}
 
 
