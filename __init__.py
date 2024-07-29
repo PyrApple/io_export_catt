@@ -73,6 +73,12 @@ class SceneProperties(PropertyGroup):
             maxlen=1024,
             subtype="DIR_PATH",
             )
+    debug: BoolProperty(
+            name="Debug",
+            description='Print logs to blender console',
+            default=False,
+            )
+
     room_file_name: StringProperty(
             name="File",
             description="Name of the room file created upon export",
@@ -111,22 +117,20 @@ class SceneProperties(PropertyGroup):
             description='Add face id information in exported plane names (for debug purpose)',
             default=False,
             )
-    debug: BoolProperty(
-            name="Debug",
-            description='Print logs to blender console',
-            default=False,
-            )
+
     # export_progress: IntProperty(
     #         name="Progress", description="",
     #         default=0,
     #         min=0, max=100,
     #         step=1, subtype='PERCENTAGE'
     #         )
+
     editor_scripts: EnumProperty(
             name="Comments",
             description="Select an embedded text, its content will be added as comments at the top of the exported .GEO file",
             items=get_embedded_text_names,
             )
+
     receiver_file_name: StringProperty(
             name="File",
             description="Name of the file created upon export",
@@ -156,6 +160,35 @@ class SceneProperties(PropertyGroup):
             min=0.0, max=100.0, soft_min=0.0, soft_max=100.0,
             )
 
+    source_file_name: StringProperty(
+            name="File",
+            description="Name of the file created upon export",
+            default="src.loc",
+            maxlen=1024,
+            )
+    source_object: StringProperty(
+        name="Source",
+        description="Object which animation will be exported as source positions",
+        default="", maxlen=1024,
+    )
+    source_collection: StringProperty(
+        name="Sources",
+        description="Collection of objects to export as sources",
+        default="", maxlen=1024,
+    )
+    source_export_type: EnumProperty(
+            name="Export",
+            description="Export either animated object or collection of objects",
+            items=[("ANIMATED", "Animation", ""), ("COLLECTION", "Collection", "")],
+            default="COLLECTION"
+            )
+    source_dist_thresh: FloatProperty(
+            name="Merge Distance",
+            description="Minimum distance (in m) between two exported positions along animation curve",
+            default=0,
+            min=0.0, max=100.0, soft_min=0.0, soft_max=100.0,
+            )
+
 
 classes = (
     SceneProperties,
@@ -168,6 +201,8 @@ classes = (
     operators.MESH_OT_catt_export_room,
     operators.MESH_OT_catt_export_receiver_animation,
     operators.MESH_OT_catt_export_receiver_collection,
+    operators.MESH_OT_catt_export_source_animation,
+    operators.MESH_OT_catt_export_source_collection,
     operators.MESH_OT_catt_material_convert,
     # operators.MESH_OT_catt_material_retro_compat,
     operators.MESH_OT_catt_utils,

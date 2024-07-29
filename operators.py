@@ -282,130 +282,6 @@ class MESH_OT_catt_export_room(Operator):
         return {'FINISHED'}
 
 
-class MESH_OT_catt_export_receiver_animation(Operator):
-    """Export objects along animated path"""
-
-    # init locals
-    bl_idname = "catt.export_receiver_animation"
-    bl_label = "Catt Export Animation"
-
-    def execute(self, context):
-        """ method called from ui """
-
-        # init local
-        scene = context.scene
-        catt_io = context.scene.catt_io
-        round_factor = 2 # round factor applied on values
-        obj = scene.objects[catt_io.receiver_object]
-
-        # open output file
-        export_path = bpy.path.abspath(catt_io.export_path)
-        file_name = catt_io.receiver_file_name
-        file_path = os.path.join(export_path, file_name)
-        file = open(file_path,'w')
-
-        # add header
-        file.write("RECEIVERS \r\n")
-
-        # loop over frames: init
-        scene_frame_original = scene.frame_current
-        obj_id = 1
-        previous_export_loc = mathutils.Vector([math.inf, math.inf, math.inf])
-
-        # loop over frames
-        for frame in range(scene.frame_start, scene.frame_end):
-
-            # set new current frame
-            scene.frame_set(frame)
-
-            # skip if new location too close from previous one exported
-            # loc = obj.location
-            loc = obj.matrix_world.translation
-            if( (previous_export_loc - loc).length < catt_io.receiver_dist_thresh ):
-                continue
-
-            # update locals
-            previous_export_loc = mathutils.Vector([loc.x, loc.y, loc.z])
-
-            # shape line
-            s = ""
-            s += f'{obj_id:02}' + " "
-            s += str(round(loc.x, round_factor)) + " " + str(round(loc.y, round_factor)) + " " + str(round(loc.z, round_factor)) + " "
-            # rot = obj.rotation_euler
-            # s += str(round(rot.x,r)) + " " + str(round(rot.y,r)) + " " + str(round(rot.z,r))
-
-            # write to file
-            s += "\r\n"
-            file.write(s)
-
-            # increment counters
-            obj_id += 1
-
-        # write to file
-        if catt_io.debug: print('file saved to:', filePath)
-        file.close()
-
-        # reset scene frame
-        scene.frame_set(scene_frame_original)
-
-        self.report({'INFO'}, "Receiver export complete")
-        return {'FINISHED'}
-
-
-class MESH_OT_catt_export_receiver_collection(Operator):
-    """Export all objects in collection"""
-
-    # init locals
-    bl_idname = "catt.export_receiver_collection"
-    bl_label = "Catt Export Collection"
-
-    def execute(self, context):
-        """ method called from ui """
-
-        # init local
-        scene = context.scene
-        catt_io = context.scene.catt_io
-        round_factor = 2 # round factor applied on values
-        collection = bpy.data.collections[catt_io.receiver_collection]
-
-        # open output file
-        export_path = bpy.path.abspath(catt_io.export_path)
-        file_name = catt_io.receiver_file_name
-        file_path = os.path.join(export_path, file_name)
-        file = open(file_path,'w')
-
-        # add header
-        file.write("RECEIVERS \r\n")
-
-        # init loop over objects
-        obj_id = 0
-
-        # loop over objects in collection
-        for obj in collection.objects:
-
-            # init locals
-            loc = obj.matrix_world.translation
-
-            # shape line
-            s = ""
-            s += f'{obj_id:02}' + " "
-            s += str(round(loc.x, round_factor)) + " " + str(round(loc.y, round_factor)) + " " + str(round(loc.z, round_factor)) + " "
-
-            # write to file
-            s += "\r\n"
-            file.write(s)
-
-            # increment counters
-            obj_id += 1
-
-        # write to file
-        if catt_io.debug: print('file saved to:', filePath)
-        file.close()
-
-        self.report({'INFO'}, "Receiver export complete")
-        return {'FINISHED'}
-
-
     def update_deprecated_catt_materials(self, context):
         """Update properties of all catt materials to latest version"""
 
@@ -669,6 +545,233 @@ class MESH_OT_catt_export_receiver_collection(Operator):
         return 0
 
 
+class MESH_OT_catt_export_receiver_animation(Operator):
+    """Export objects along animated path"""
+
+    # init locals
+    bl_idname = "catt.export_receiver_animation"
+    bl_label = "Catt Export Animation"
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        scene = context.scene
+        catt_io = context.scene.catt_io
+        round_factor = 2 # round factor applied on values
+        obj = scene.objects[catt_io.receiver_object]
+
+        # open output file
+        export_path = bpy.path.abspath(catt_io.export_path)
+        file_name = catt_io.receiver_file_name
+        file_path = os.path.join(export_path, file_name)
+        file = open(file_path,'w')
+
+        # add header
+        file.write("RECEIVERS \r\n")
+
+        # sample positions along animations
+        [list_translation, list_rotation_euler] = utils.sample_animation_path(context, obj, catt_io.receiver_dist_thresh)
+
+        # loop over positions
+        for iPos in range(0, len(list_translation)):
+
+            # init locals
+            obj_id = iPos + 1
+            loc = list_translation[iPos]
+
+            # shape line
+            s = ""
+            s += f'{obj_id:02}' + " "
+            s += str(round(loc[0], round_factor)) + " " + str(round(loc[1], round_factor)) + " " + str(round(loc[2], round_factor)) + " "
+            # rot = obj.rotation_euler
+            # s += str(round(rot.x,r)) + " " + str(round(rot.y,r)) + " " + str(round(rot.z,r))
+
+            # write to file
+            s += "\r\n"
+            file.write(s)
+
+        # write to file
+        if catt_io.debug: print('file saved to:', filePath)
+        file.close()
+
+        self.report({'INFO'}, "Receiver export complete")
+        return {'FINISHED'}
+
+
+class MESH_OT_catt_export_source_animation(Operator):
+    """Export objects along animated path"""
+
+    # init locals
+    bl_idname = "catt.export_source_animation"
+    bl_label = "Catt Export Animation"
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        scene = context.scene
+        catt_io = context.scene.catt_io
+        round_factor = 2 # round factor applied on values
+        obj = scene.objects[catt_io.source_object]
+
+        # open output file
+        export_path = bpy.path.abspath(catt_io.export_path)
+        file_name = catt_io.source_file_name
+        file_path = os.path.join(export_path, file_name)
+        file = open(file_path,'w')
+
+        # sample positions along animations
+        [list_translation, list_rotation_euler] = utils.sample_animation_path(context, obj, catt_io.source_dist_thresh)
+
+        # get list of available source names
+        source_names = utils.get_catt_source_names()
+
+        # discard if too many positions compared to available source names
+        if( len(list_translation) > len(source_names) ):
+            file.write("ERROR: too many source positions to export, not enough valid CATT source names")
+            file.close()
+            self.report({'WARNING'}, "Source export aborted")
+            return {'FINISHED'}
+
+        # loop over positions
+        for iPos in range(0, len(list_translation)):
+
+            # source header
+            file.write("SOURCE " + source_names[iPos] + "\r\n")
+
+            # source pos
+            loc = list_translation[iPos]
+            s = "  "
+            s += "POS = "
+            s += str(round(loc[0], round_factor)) + " " + str(round(loc[1], round_factor)) + " " + str(round(loc[2], round_factor))
+            s += " \r\n"
+            file.write(s)
+
+            # source aim pos
+            s = "  "
+            s += "AIMPOS = "
+            aimpos = mathutils.Vector([0, 0, 0])
+            s += str(round(aimpos.x, round_factor)) + " " + str(round(aimpos.y, round_factor)) + " " + str(round(aimpos.z, round_factor))
+            s += " \r\n"
+            # file.write(s)
+
+            file.write("END \r\n \r\n")
+
+        # write to file
+        if catt_io.debug: print('file saved to:', filePath)
+        file.close()
+
+        self.report({'INFO'}, "Source export complete")
+        return {'FINISHED'}
+
+
+class MESH_OT_catt_export_receiver_collection(Operator):
+    """Export all objects in collection"""
+
+    # init locals
+    bl_idname = "catt.export_receiver_collection"
+    bl_label = "Catt Export Collection"
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        scene = context.scene
+        catt_io = context.scene.catt_io
+        round_factor = 2 # round factor applied on values
+        collection = bpy.data.collections[catt_io.receiver_collection]
+
+        # open output file
+        export_path = bpy.path.abspath(catt_io.export_path)
+        file_name = catt_io.receiver_file_name
+        file_path = os.path.join(export_path, file_name)
+        file = open(file_path,'w')
+
+        # add header
+        file.write("RECEIVERS \r\n")
+
+        # init loop over objects
+        obj_id = 0
+
+        # loop over objects in collection
+        for obj in collection.objects:
+
+            # init locals
+            loc = obj.matrix_world.translation
+
+            # shape line
+            s = ""
+            s += f'{obj_id:02}' + " "
+            s += str(round(loc.x, round_factor)) + " " + str(round(loc.y, round_factor)) + " " + str(round(loc.z, round_factor)) + " "
+
+            # write to file
+            s += "\r\n"
+            file.write(s)
+
+            # increment counters
+            obj_id += 1
+
+        # write to file
+        if catt_io.debug: print('file saved to:', filePath)
+        file.close()
+
+        self.report({'INFO'}, "Receiver export complete")
+        return {'FINISHED'}
+
+
+class MESH_OT_catt_export_source_collection(Operator):
+    """Export all objects in collection"""
+
+    # init locals
+    bl_idname = "catt.export_source_collection"
+    bl_label = "Catt Export Collection"
+
+    def execute(self, context):
+        """ method called from ui """
+
+        # init local
+        scene = context.scene
+        catt_io = context.scene.catt_io
+        round_factor = 2 # round factor applied on values
+        collection = bpy.data.collections[catt_io.source_collection]
+
+        # open output file
+        export_path = bpy.path.abspath(catt_io.export_path)
+        file_name = catt_io.source_file_name
+        file_path = os.path.join(export_path, file_name)
+        file = open(file_path,'w')
+
+        # loop over objects in collection
+        for obj in collection.objects:
+
+            # source header
+            file.write("SOURCE " + obj.name + "\r\n")
+
+            # source pos
+            loc = obj.matrix_world.translation
+            s = "  "
+            s += "POS = "
+            s += str(round(loc.x, round_factor)) + " " + str(round(loc.y, round_factor)) + " " + str(round(loc.z, round_factor))
+            s += " \r\n"
+            file.write(s)
+
+            # source aim pos
+            s = "  "
+            s += "AIMPOS = "
+            aimpos = mathutils.Vector([0, 0, 0])
+            s += str(round(aimpos.x, round_factor)) + " " + str(round(aimpos.y, round_factor)) + " " + str(round(aimpos.z, round_factor))
+            s += " \r\n"
+            # file.write(s)
+
+            file.write("END \r\n \r\n")
+
+        # write to file
+        if catt_io.debug: print('file saved to:', filePath)
+        file.close()
+
+        self.report({'INFO'}, "Source export complete")
+        return {'FINISHED'}
 
 
 from mathutils.geometry import (distance_point_to_plane, normal)

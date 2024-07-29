@@ -121,11 +121,41 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         row.ui_units_y += 1 + ui_elmt_offset
 
         row = box.row(align=True)
-        row.operator("catt.export_room", text="Export Room", icon='EXPORT')
+        row.operator("catt.export_room", text="Export", icon='EXPORT')
 
         # row = col.row(align=True)
         # row.prop(catt_io, "export_progress", slider=True)
         # row.enabled = False
+
+
+        # Source export
+        box = layout.box()
+        box.label(text="Source", icon="PLAY_SOUND")
+
+        row = box.row()
+        row.prop(catt_io, "source_file_name")
+
+        row = box.row(align=True)
+        row.prop(catt_io, "source_export_type")
+
+        if( catt_io.source_export_type == "COLLECTION"):
+
+            row = box.row(align=True)
+            row.prop_search(catt_io, "source_collection", bpy.data, "collections")
+
+            row = box.row(align=True)
+            row.operator("catt.export_source_collection", text="Export", icon='EXPORT')
+
+        else:
+
+            row = box.row(align=True)
+            row.prop_search(catt_io, "source_object", bpy.data, "objects")
+
+            row = box.row(align=True)
+            row.prop(catt_io, "source_dist_thresh")
+
+            row = box.row(align=True)
+            op = row.operator("catt.export_source_animation", text="Export", icon='EXPORT')
 
 
         # Receiver export

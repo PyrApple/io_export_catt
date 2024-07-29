@@ -18,6 +18,8 @@
 
 import bmesh
 import bpy
+import mathutils
+import math
 
 
 def freq_to_str(freq):
@@ -324,3 +326,55 @@ def create_objects_from_parsed_geo_file(vertices, faces, materials, collection_n
         # add object to scene collection
         new_collection.objects.link(new_object)
 
+
+def sample_animation_path(context, obj, dist_thresh):
+    """ sample xyz coordinates along animation path, with distance ignore threshold """
+
+    # init local
+    scene = context.scene
+
+    # loop over frames: init
+    scene_frame_original = scene.frame_current
+    previous_export_loc = mathutils.Vector([math.inf, math.inf, math.inf])
+    list_translation = []
+    list_rotation_euler = []
+
+    # loop over frames
+    for frame in range(scene.frame_start, scene.frame_end):
+
+        # set new current frame
+        scene.frame_set(frame)
+
+        # skip if new location too close from previous one exported
+        # loc = obj.location
+        loc = obj.matrix_world.translation
+        if( (previous_export_loc - loc).length < dist_thresh ):
+            continue
+        rot = obj.rotation_euler
+
+        # update locals
+        previous_export_loc = mathutils.Vector([loc.x, loc.y, loc.z])
+
+        # append to list
+        list_translation.append([loc.x, loc.y, loc.z])
+        list_rotation_euler.append([rot[0], rot[1], rot[2]])
+
+    # reset scene frame
+    scene.frame_set(scene_frame_original)
+
+    return [list_translation, list_rotation_euler]
+
+
+def get_catt_source_names():
+
+    # init
+    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    numbers = '0123456789'
+    names = []
+
+    # generate prefixes
+    for iLetter in range(0, len(letters)):
+        for iNumber in range(0, len(numbers)):
+            names.append(letters[iLetter] + numbers[iNumber])
+
+    return names
