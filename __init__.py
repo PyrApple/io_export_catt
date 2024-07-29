@@ -127,19 +127,30 @@ class SceneProperties(PropertyGroup):
             description="Select an embedded text, its content will be added as comments at the top of the exported .GEO file",
             items=get_embedded_text_names,
             )
-    source_file_name: StringProperty(
+    receiver_file_name: StringProperty(
             name="File",
-            description="Name of the source file created upon export",
-            default="SRC.LOC",
+            description="Name of the file created upon export",
+            default="rec.loc",
             maxlen=1024,
             )
-    source_object: StringProperty(
-        name="Source",
-        description="Object which animation will be exported as source positions",
+    receiver_object: StringProperty(
+        name="Receiver",
+        description="Object which animation will be exported as receiver positions",
         default="", maxlen=1024,
     )
-    source_dist_thresh: FloatProperty(
-            name="Min Distance",
+    receiver_collection: StringProperty(
+        name="Receivers",
+        description="Collection of objects to export as receivers",
+        default="", maxlen=1024,
+    )
+    receiver_export_type: EnumProperty(
+            name="Export",
+            description="Export either animated object or collection of objects",
+            items=[("ANIMATED", "Animation", ""), ("COLLECTION", "Collection", "")],
+            default="COLLECTION"
+            )
+    receiver_dist_thresh: FloatProperty(
+            name="Merge Distance",
             description="Minimum distance (in m) between two exported positions along animation curve",
             default=0,
             min=0.0, max=100.0, soft_min=0.0, soft_max=100.0,
@@ -155,7 +166,8 @@ classes = (
 
     operators.MESH_OT_catt_import,
     operators.MESH_OT_catt_export_room,
-    operators.MESH_OT_catt_export_source,
+    operators.MESH_OT_catt_export_receiver_animation,
+    operators.MESH_OT_catt_export_receiver_collection,
     operators.MESH_OT_catt_material_convert,
     # operators.MESH_OT_catt_material_retro_compat,
     operators.MESH_OT_catt_utils,

@@ -128,21 +128,35 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         # row.enabled = False
 
 
-        # Source export
+        # Receiver export
         box = layout.box()
-        box.label(text="Source", icon="SPEAKER")
+        box.label(text="Receiver", icon="MONKEY")
 
         row = box.row()
-        row.prop(catt_io, "source_file_name")
+        row.prop(catt_io, "receiver_file_name")
 
         row = box.row(align=True)
-        row.prop_search(catt_io, "source_object", bpy.data, "objects")
+        row.prop(catt_io, "receiver_export_type")
 
-        row = box.row(align=True)
-        row.prop(catt_io, "source_dist_thresh")
+        if( catt_io.receiver_export_type == "COLLECTION"):
 
-        row = box.row(align=True)
-        row.operator("catt.export_source", text="Export Source", icon='EXPORT')
+            row = box.row(align=True)
+            row.prop_search(catt_io, "receiver_collection", bpy.data, "collections")
+
+            row = box.row(align=True)
+            row.operator("catt.export_receiver_collection", text="Export", icon='EXPORT')
+
+        else:
+
+            row = box.row(align=True)
+            row.prop_search(catt_io, "receiver_object", bpy.data, "objects")
+
+            row = box.row(align=True)
+            row.prop(catt_io, "receiver_dist_thresh")
+
+            row = box.row(align=True)
+            op = row.operator("catt.export_receiver_animation", text="Export", icon='EXPORT')
+            # op.prop_type = "source"
 
 
 class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
