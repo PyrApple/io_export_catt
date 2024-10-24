@@ -584,6 +584,8 @@ class MESH_OT_catt_export_receiver_animation(Operator):
             s = ""
             s += f'{obj_id:02}' + " "
             s += str(round(loc[0], round_factor)) + " " + str(round(loc[1], round_factor)) + " " + str(round(loc[2], round_factor)) + " "
+
+            # WARNING: if you add rotation/euler export, sample_animation_path removes duplicates (even far away duplicates animation wise). Might want to alleviate that depending on export scenarios.
             # rot = obj.rotation_euler
             # s += str(round(rot.x,r)) + " " + str(round(rot.y,r)) + " " + str(round(rot.z,r))
 

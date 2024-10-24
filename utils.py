@@ -359,10 +359,47 @@ def sample_animation_path(context, obj, dist_thresh):
         list_translation.append([loc.x, loc.y, loc.z])
         list_rotation_euler.append([rot[0], rot[1], rot[2]])
 
+    # remove duplicates
+    [list_translation_filtered, ids_filtered] = remove_duplicates(list_translation, dist_thresh)
+    list_rotation_euler_filtered = [ list_rotation_euler[id] for id in ids_filtered ]
+
     # reset scene frame
     scene.frame_set(scene_frame_original)
 
-    return [list_translation, list_rotation_euler]
+    return [list_translation_filtered, list_rotation_euler_filtered]
+
+
+def remove_duplicates(points, dist_thresh):
+
+    # init locals
+    ids_filtered = []
+
+    # loop over points
+    for id in range(0, len(points)):
+
+        # if first element, simply add to list
+        if len(ids_filtered) == 0:
+            ids_filtered.append(id)
+            continue
+
+        # check if current point far enough from any already filtered points
+        too_close = False
+        for id_filtered in ids_filtered:
+            point1 = mathutils.Vector(points[id])
+            point2 = mathutils.Vector(points[id_filtered])
+            if (point1 - point2).length <= dist_thresh:
+                too_close = True
+                break
+
+        # store to locals if not too close from filtered points
+        if not too_close:
+            ids_filtered.append(id)
+
+    # construct filtered list
+    points_filtered = [ points[id] for id in ids_filtered ]
+
+    # output
+    return [points_filtered, ids_filtered]
 
 
 def get_catt_source_names():
