@@ -696,8 +696,12 @@ class MESH_OT_catt_export_receiver_collection(Operator):
         # init loop over objects
         obj_id = 0
 
+        # get sorted list (alphabetical, as displayed in outliner)
+        obj_list = collection.objects[:]
+        obj_list.sort(key=lambda obj: obj.name)
+
         # loop over objects in collection
-        for obj in collection.objects:
+        for obj in obj_list:
 
             # init locals
             loc = obj.matrix_world.translation
@@ -744,8 +748,12 @@ class MESH_OT_catt_export_source_collection(Operator):
         file_path = os.path.join(export_path, file_name)
         file = open(file_path,'w')
 
+        # get sorted list (alphabetical, as displayed in outliner)
+        obj_list = collection.objects[:]
+        obj_list.sort(key=lambda obj: obj.name)
+
         # loop over objects in collection
-        for obj in collection.objects:
+        for obj in obj_list:
 
             # source header
             file.write("SOURCE " + obj.name + "\r\n")
