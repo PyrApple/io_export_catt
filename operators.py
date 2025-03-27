@@ -304,6 +304,10 @@ class MESH_OT_catt_export_room(Operator):
             if "is_catt_material" not in mat:
                 continue
 
+            # ignore materials without rna (e.g. default dot stroke)
+            if not "_RNA_UI" in mat:
+                continue
+
             # copy rna
             rna_dict = mat["_RNA_UI"]
 
@@ -370,19 +374,32 @@ class MESH_OT_catt_export_room(Operator):
                 print('merging objects')
 
             # create tmp context, to avoid changing current user selected object(s)
-            ctx = bpy.context.copy()
+            # ctx = bpy.context.copy()
 
             # set as active one of the objects to join
-            ctx['active_object'] = objects_copy[0]
+            # ctx['active_object'] = objects_copy[0]
 
             # select all objects to join
-            ctx['selected_editable_objects'] = objects_copy
+            # ctx['selected_editable_objects'] = objects_copy
+
+            # Deselect everything first for cleanliness
+            bpy.ops.object.select_all(action='DESELECT')
+
+            # Select all to join
+            for obj in objects_copy:
+                obj.select_set(True)
+            bpy.context.view_layer.objects.active = objects_copy[0]
+
+            bpy.ops.object.join()
+            concat_object = objects_copy[0]  # After join, this holds the merged data
 
             # join objects into one
-            bpy.ops.object.join(ctx)
+            # with bpy.context.temp_override(active_object=objects_copy[0], selected_objects=objects_copy):
+            #     bpy.ops.object.join()
+            # bpy.ops.object.join(ctx)
 
             # get reference to created object
-            concat_object = ctx['active_object']
+            # concat_object = ctx['active_object']
 
             # remove duplicate vertices
             if catt_io.rm_duplicates_dist > 0:
