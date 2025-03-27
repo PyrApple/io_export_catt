@@ -415,3 +415,47 @@ def get_catt_source_names():
             names.append(letters[iLetter] + numbers[iNumber])
 
     return names
+
+
+# recursively get all objects in a collection and its children collections (if not excluded from view layer)
+def get_all_objects_recursive(collection, view_layer):
+
+    # get a list of objects in collection
+    objects = list(collection.objects)
+
+    # loop over child collections
+    for child_coll in collection.children:
+
+        # only if collection not excluded (check box ticked)
+        if is_collection_included_in_viewlayer(child_coll, view_layer):
+
+            # extend with list of child collection objects
+            objects.extend(get_all_objects_recursive(child_coll, view_layer))
+
+    return objects
+
+
+# check if collection excluded from view layer
+def is_collection_included_in_viewlayer(collection, view_layer):
+
+    # find layer
+    layer_collection = find_layer_collection(view_layer.layer_collection, collection)
+
+    return layer_collection is not None and not layer_collection.exclude
+
+# find layer of a given collection (recursive)
+def find_layer_collection(layer_coll, target_collection):
+
+    # search complete
+    if layer_coll.collection == target_collection:
+        return layer_coll
+
+    # loop over children
+    for child in layer_coll.children:
+        found = find_layer_collection(child, target_collection)
+        if found:
+            return found
+
+    # default fail
+    return None
+

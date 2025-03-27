@@ -234,7 +234,14 @@ class MESH_OT_catt_export_room(Operator):
         self.update_deprecated_catt_materials(context)
 
         # get list of objects to export (meshes visible in viewport)
-        objects = [obj for obj in bpy.context.view_layer.objects if obj.visible_get() and obj.type == 'MESH']
+        # objects = [obj for obj in bpy.context.view_layer.objects if obj.visible_get() and obj.type == 'MESH']
+
+        # get list of objects in room collection
+        collection = bpy.data.collections[catt_io.room_collection]
+        objects = utils.get_all_objects_recursive(collection, bpy.context.view_layer)
+
+        # filter only mesh objects
+        objects = [obj for obj in objects if obj.type == 'MESH']
 
         # discard if no objects
         if len(objects) == 0:
@@ -342,6 +349,7 @@ class MESH_OT_catt_export_room(Operator):
             # duplicate object
             obj_copy = obj.copy()
             obj_copy.data = obj_copy.data.copy() # make sure object data is not linked to original
+            bpy.context.collection.objects.link(obj_copy)
 
             # apply transform, triangulate, apply modifiers
             bm = utils.bmesh_copy_from_object(obj, transform=False, triangulate=catt_io.triangulate_faces, apply_modifiers=catt_io.apply_modifiers)
