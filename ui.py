@@ -73,7 +73,7 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         catt_io = context.scene.catt_io
         ui_elmt_offset = 0.6
 
-        # Globals
+        # Preferences
         box = layout.box()
         box.label(text="Preferences", icon="PREFERENCES")
 
@@ -83,21 +83,19 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         row = box.row()
         row.prop(catt_io, "debug")
 
-        # Room import/export
+        # Import
         box = layout.box()
-        box.label(text="Room", icon="CUBE")
+        box.label(text="Import", icon="IMPORT")
 
         row = box.row()
-        row.operator("catt.import", text="Import Room", icon='IMPORT')
-        row.ui_units_y += 1 + ui_elmt_offset
+        row.operator("catt.import", text="Import Room From File", icon='IMPORT')
 
-        row = box.row()
-        row.prop(catt_io, "room_file_name")
+        # Room export
+        box = layout.box()
+        box.label(text="Export Room", icon="CUBE")
 
-        row = box.row()
-        row.prop(catt_io, "editor_scripts")
-
-        row.ui_units_y += 1 + ui_elmt_offset
+        row = box.row(align=True)
+        row.prop_search(catt_io, "room_collection", bpy.data, "collections")
 
         row = box.row(align=True)
         row.operator("catt.utils", text="Detect Non-Planar faces", icon="XRAY").arg = 'check_nonflat_faces' # 'SURFACE_DATA', 'XRAY', 'MOD_WARP'
@@ -118,10 +116,16 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         row.enabled = catt_io.merge_objects
         row.prop(catt_io, "rm_duplicates_dist")
 
-        row.ui_units_y += 1 + ui_elmt_offset
+        # row.ui_units_y += 1 + ui_elmt_offset
+
+        row = box.row()
+        row.prop(catt_io, "editor_scripts")
+
+        row = box.row()
+        row.prop(catt_io, "room_file_name")
 
         row = box.row(align=True)
-        row.operator("catt.export_room", text="Export", icon='EXPORT')
+        row.operator("catt.export_room", text="Export Room", icon='EXPORT')
 
         # row = col.row(align=True)
         # row.prop(catt_io, "export_progress", slider=True)
@@ -130,10 +134,7 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
 
         # Source export
         box = layout.box()
-        box.label(text="Source", icon="PLAY_SOUND")
-
-        row = box.row()
-        row.prop(catt_io, "source_file_name")
+        box.label(text="Export Source", icon="PLAY_SOUND")
 
         row = box.row(align=True)
         row.prop(catt_io, "source_export_type")
@@ -143,8 +144,11 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
             row = box.row(align=True)
             row.prop_search(catt_io, "source_collection", bpy.data, "collections")
 
+            row = box.row()
+            row.prop(catt_io, "source_file_name")
+
             row = box.row(align=True)
-            row.operator("catt.export_source_collection", text="Export", icon='EXPORT')
+            row.operator("catt.export_source_collection", text="Export Source", icon='EXPORT')
 
         else:
 
@@ -154,16 +158,16 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
             row = box.row(align=True)
             row.prop(catt_io, "source_dist_thresh")
 
+            row = box.row()
+            row.prop(catt_io, "source_file_name")
+
             row = box.row(align=True)
-            op = row.operator("catt.export_source_animation", text="Export", icon='EXPORT')
+            op = row.operator("catt.export_source_animation", text="Export Source", icon='EXPORT')
 
 
         # Receiver export
         box = layout.box()
-        box.label(text="Receiver", icon="MONKEY")
-
-        row = box.row()
-        row.prop(catt_io, "receiver_file_name")
+        box.label(text="Export Receiver", icon="MONKEY")
 
         row = box.row(align=True)
         row.prop(catt_io, "receiver_export_type")
@@ -173,8 +177,11 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
             row = box.row(align=True)
             row.prop_search(catt_io, "receiver_collection", bpy.data, "collections")
 
+            row = box.row()
+            row.prop(catt_io, "receiver_file_name")
+
             row = box.row(align=True)
-            row.operator("catt.export_receiver_collection", text="Export", icon='EXPORT')
+            row.operator("catt.export_receiver_collection", text="Export Receiver", icon='EXPORT')
 
         else:
 
@@ -184,8 +191,11 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
             row = box.row(align=True)
             row.prop(catt_io, "receiver_dist_thresh")
 
+            row = box.row()
+            row.prop(catt_io, "receiver_file_name")
+
             row = box.row(align=True)
-            op = row.operator("catt.export_receiver_animation", text="Export", icon='EXPORT')
+            op = row.operator("catt.export_receiver_animation", text="Export Receiver", icon='EXPORT')
             # op.prop_type = "source"
 
 
