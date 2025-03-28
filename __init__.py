@@ -22,7 +22,7 @@ bl_info = {
     "blender": (4, 0, 0),
     "location": "3D View > Sidebar",
     "description": "Transfer data between CATT-Acoustic and Blender",
-    "doc_url": "https://github.com/PyrApple/io_export_catt/blob/master/readme.md",
+    "doc_url": "https://github.com/PyrApple/io_export_catt/tree/master",
     "support": 'COMMUNITY',
     "category": "Import-Export"}
 
