@@ -109,6 +109,9 @@ class MESH_OT_catt_material_convert(Operator):
         # apply rna
         mat["_RNA_UI"] = rna_dict
 
+        # copy colour to non-node diffuse if was using bsdf node
+        mat.diffuse_color = utils.get_mat_bsdf_color(mat)
+
         # disable use nodes (easier to access diffuse colour that way)
         mat.use_nodes = False
 
