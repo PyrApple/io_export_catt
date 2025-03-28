@@ -23,11 +23,10 @@ import math
 
 
 def freq_to_str(freq):
-    """convert float freqency to string"""
+    """convert float frequency to string"""
 
     # kHz
-    if freq < 1000.0:
-        return '{0}Hz'.format(int(freq))
+    if freq < 1000.0: return '{0}Hz'.format(int(freq))
 
     # Hz
     return '{0}kHz'.format(int(freq/1000.0))
@@ -39,34 +38,37 @@ def mat_name_to_str(mat_name):
     return mat_name.replace('.', '_')
 
 
-# method from the Print3D add-on: create a bmesh from an object
-# (for triangulation, apply modifiers, etc.)
+# method from the Print3D add-on: create a bmesh from an object (for triangulation, apply modifiers, etc.)
 def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
     """ returns a transformed, triangulated copy of the mesh """
 
     assert obj.type == 'MESH'
 
     if apply_modifiers and obj.modifiers:
+
         depsgraph = bpy.context.evaluated_depsgraph_get()
         obj_eval = obj.evaluated_get(depsgraph)
         me = obj_eval.to_mesh()
         bm = bmesh.new()
         bm.from_mesh(me)
         obj_eval.to_mesh_clear()
+
     else:
+
         me = obj.data
         if obj.mode == 'EDIT':
+
             bm_orig = bmesh.from_edit_mesh(me)
             bm = bm_orig.copy()
+
         else:
+
             bm = bmesh.new()
             bm.from_mesh(me)
 
-    if transform:
-        bm.transform(obj.matrix_world)
+    if transform: bm.transform(obj.matrix_world)
 
-    if triangulate:
-        bmesh.ops.triangulate(bm, faces=bm.faces)
+    if triangulate: bmesh.ops.triangulate(bm, faces=bm.faces)
 
     return bm
 
@@ -88,9 +90,6 @@ def parse_geo_file(filepath):
 
             # discard empty lines
             if( len(line_split) == 0 ): continue
-
-            # debug
-            # print(line_split)
 
             # line: material definition
             if( line_split[0].lower() == 'abs' ):
@@ -154,7 +153,7 @@ def parse_geo_file(filepath):
                     # update locals
                     material['diffraction'] = diffraction
 
-                # color definition
+                # colour definition
                 color = onlyDigitList( line[dif_index_end::].split() )
                 color = [round(float(x)/255.0, 3) for x in color]
                 color.append(1.0) # alpha
@@ -162,9 +161,6 @@ def parse_geo_file(filepath):
 
                 # save material to locals
                 materials[material_name] = material
-
-                # # debug
-                # print("material:", material_name, absorption, diffraction, color)
 
             # line: vertex (corner) definition
             elif( line_split[0].isnumeric() ):
@@ -177,23 +173,23 @@ def parse_geo_file(filepath):
                 # save to locals
                 vertices[vertice_id] = {'xyz': vertice_xyz}
 
-                # # debug
-                # print("vertex:", vertice_id, vertice_xyz)
-
             # line: face (plane) definition
             elif( line_split[0][0] == "[" ):
 
-                # check that catt didn't split line in two (... yes, if too long, it does)
+                # check that catt didn't split line in two (does if line is too long)
                 try:
+
                     index_open = line.index("[")
                     index_close = line.index("]")
+
                 except ValueError:
+
                     print("\nERROR: Unexpected line break at line", line_id, "\n->", line + "Face import discarded\n")
                     error_detected = True
                     continue
 
                 # shape data
-                line_strip = line.replace("[", "").replace("]", "") # .replace("/", "")
+                line_strip = line.replace("[", "").replace("]", "")
                 line_split = line_strip.split()
 
                 # deal with object names containing spaces
@@ -210,14 +206,12 @@ def parse_geo_file(filepath):
                 # ('*' at end of material name, that need to be moved to end of object name to be preserved in blender scene for next export)
                 # note: can't use material names with * at the end in original CATT scene
                 if( face_material[-1] == '*' ):
+
                     face_material = face_material[:-1] # remove last character
                     obj_name = obj_name + '*'
 
                 # save to locals
                 faces[face_id] = {'obj_name': obj_name, 'vertices': face_vertices, 'material': face_material}
-
-                # # debug
-                # print("face: ", face_id, face_name, face_vertices, face_material)
 
     return [vertices, faces, materials, error_detected]
 
@@ -252,12 +246,8 @@ def create_objects_from_parsed_geo_file(vertices, faces, materials, collection_n
         bsdf.inputs["Base Color"].default_value = material_color
         material.diffuse_color = material_color
 
-
-    # 16:11
-
-    # get list of all the objects to create (from names in faces)
+    # loop over faces, get list of all the objects to create (from names in faces)
     object_list = {}
-    # loop over faces
     for face_id in faces.keys():
 
         # create object entry in local dict if not already in
@@ -269,11 +259,9 @@ def create_objects_from_parsed_geo_file(vertices, faces, materials, collection_n
         object_list[object_name]['faces'].append( faces[face_id] )
         object_list[object_name]['vertices'].append( faces[face_id]['vertices'] )
 
-
     # make collection
     new_collection = bpy.data.collections.new(collection_name)
     bpy.context.scene.collection.children.link(new_collection)
-
 
     # loop over objects to create
     for object_name in object_list.keys():
@@ -285,7 +273,7 @@ def create_objects_from_parsed_geo_file(vertices, faces, materials, collection_n
         # shape list of vertices (unique) of current object
         vertice_ids = [item for sublist in object_list[object_name]['vertices'] for item in sublist] # from list of lists to flat list
         vertice_ids = list( dict.fromkeys( vertice_ids ) ) # remove duplicates
-        vertice_ids.sort() # sort list (to prepare renumbering of vertice ids in faces to span 0:num_vertices
+        vertice_ids.sort() # sort list (to prepare renumbering of vertices ids in faces to span 0:num_vertices
         mesh_vertices = []
         for vertice_id in vertice_ids:
             mesh_vertices.append( tuple( vertices[vertice_id]['xyz'] ) )
@@ -348,8 +336,7 @@ def sample_animation_path(context, obj, dist_thresh):
         # skip if new location too close from previous one exported
         # loc = obj.location
         loc = obj.matrix_world.translation
-        if( (previous_export_loc - loc).length < dist_thresh ):
-            continue
+        if( (previous_export_loc - loc).length < dist_thresh ): continue
         rot = obj.rotation_euler
 
         # update locals
@@ -379,15 +366,19 @@ def remove_duplicates(points, dist_thresh):
 
         # if first element, simply add to list
         if len(ids_filtered) == 0:
+
             ids_filtered.append(id)
             continue
 
         # check if current point far enough from any already filtered points
         too_close = False
         for id_filtered in ids_filtered:
+
             point1 = mathutils.Vector(points[id])
             point2 = mathutils.Vector(points[id_filtered])
+
             if (point1 - point2).length <= dist_thresh:
+
                 too_close = True
                 break
 

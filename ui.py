@@ -73,6 +73,7 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         catt_io = context.scene.catt_io
         ui_elmt_offset = 0.6
 
+
         # Preferences
         box = layout.box()
         box.label(text="Preferences", icon="PREFERENCES")
@@ -83,12 +84,14 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
         row = box.row()
         row.prop(catt_io, "debug")
 
+
         # Import
         box = layout.box()
         box.label(text="Import", icon="IMPORT")
 
         row = box.row()
         row.operator("catt.import", text="Import Room From File", icon='IMPORT')
+
 
         # Room export
         box = layout.box()
@@ -196,7 +199,6 @@ class VIEW3D_PT_catt_main(View3DCattPanel, Panel):
 
             row = box.row(align=True)
             op = row.operator("catt.export_receiver_animation", text="Export Receiver", icon='EXPORT')
-            # op.prop_type = "source"
 
 
 class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
@@ -214,10 +216,9 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
         catt_io = context.scene.catt_io
 
         # discard if no object selected
-        if not obj:
-            return
+        if not obj: return
 
-        # material datablock manager
+        # material data block manager
         box = layout.row()
         layout.template_ID_preview(obj, "active_material")
 
@@ -226,8 +227,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
 
             # discard if object has no active material
             mat = obj.active_material
-            if not mat:
-                return
+            if not mat: return
 
             # # retro compatibility
             # if 'cattMaterial' in mat:
@@ -281,8 +281,7 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             colsub.prop(mat,'["use_diffraction"]', text="")
 
             # discard remainder if not use diffraction
-            if not mat['use_diffraction']:
-                return
+            if not mat['use_diffraction']: return
 
             # use estimate?
             row = layout.row(align=True)
@@ -293,10 +292,13 @@ class VIEW3D_PT_catt_material(View3DCattPanel, Panel):
             colsub.prop(mat,'["is_diff_estimate"]', text="")
 
             if( mat['is_diff_estimate'] ):
+
                 row = layout.row(align=True)
                 row.label(text="estimated")
                 row.prop(mat,'["diff_estimate"]', text="")
+
             else:
+
                 # loop over frequencies
                 for i_freq, freq in enumerate(catt_io.frequency_bands):
                     row = layout.row(align=True)

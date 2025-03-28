@@ -59,7 +59,6 @@ def get_material_template(context):
         "default":0.1, "soft_min":0.0, "min": 0.0
     }
 
-
     # loop over frequency bands
     for i_freq, freq in enumerate(catt_io.frequency_bands):
 
@@ -110,7 +109,7 @@ class MESH_OT_catt_material_convert(Operator):
         # apply rna
         mat["_RNA_UI"] = rna_dict
 
-        # disable use nodes (easier to access diffuse color that way)
+        # disable use nodes (easier to access diffuse colour that way)
         mat.use_nodes = False
 
         return {'FINISHED'}
@@ -173,12 +172,6 @@ class MESH_OT_catt_import(Operator, ImportHelper):
 
     def execute(self, context):
         """ method called from ui """
-
-        # init local
-        # catt_io = context.scene.catt_io
-
-        # debug
-        # print('Some Boolean:', self.some_boolean)
 
         # parse data from geo file
         [vertices, faces, materials, is_error_detected] = utils.parse_geo_file(self.filepath)
@@ -275,7 +268,6 @@ class MESH_OT_catt_export_room(Operator):
                     self.report({'ERROR'}, 'object {0} material {1} name is too long (max is 15 characters)'.format(obj.name, mat.name))
                     return {'CANCELLED'}
 
-
         # get export path
         export_path = bpy.path.abspath(catt_io.export_path)
         file_name = catt_io.room_file_name
@@ -285,7 +277,7 @@ class MESH_OT_catt_export_room(Operator):
         self.export_objects(file_path, objects)
 
         # exit
-        self.report({'INFO'}, 'CATT export complete')
+        self.report({'INFO'}, 'Room export complete')
         return {'FINISHED'}
 
 
@@ -296,23 +288,17 @@ class MESH_OT_catt_export_room(Operator):
         catt_io = context.scene.catt_io
         mat_template = get_material_template(context)
 
-        # print("----------------------------------------")
         # loop over materials in scene
         for mat in bpy.data.materials:
 
             # discard if not a catt material
-            if "is_catt_material" not in mat:
-                continue
+            if "is_catt_material" not in mat: continue
 
             # ignore materials without rna (e.g. default dot stroke)
-            if not "_RNA_UI" in mat:
-                continue
+            if not "_RNA_UI" in mat: continue
 
             # copy rna
             rna_dict = mat["_RNA_UI"]
-
-            # for key in rna_dict:
-            #     print("-", key, rna_dict[key])
 
             # loop over required fields
             for key, value in mat_template.items():
@@ -327,7 +313,6 @@ class MESH_OT_catt_export_room(Operator):
                 # elif rna_dict[key] != value:
                 #     print("deprecated key found, updating key", key, "of", mat.name)
                 #     print("\t", rna_dict[key], "->", value)
-
                 #     rna_dict[key] = value
 
             # apply rna
@@ -347,8 +332,7 @@ class MESH_OT_catt_export_room(Operator):
         for i_obj, obj in enumerate(objects):
 
             # debug log
-            if catt_io.debug:
-                print('copying objects {0}/{1}: {2}'.format(i_obj+1, len(objects), obj.name))
+            if catt_io.debug: print('copying objects {0}/{1}: {2}'.format(i_obj+1, len(objects), obj.name))
 
             # duplicate object
             obj_copy = obj.copy()
@@ -370,44 +354,27 @@ class MESH_OT_catt_export_room(Operator):
         if catt_io.merge_objects and len(objects_copy) > 1:
 
             # debug log
-            if catt_io.debug:
-                print('merging objects')
+            if catt_io.debug: print('merging objects')
 
-            # create tmp context, to avoid changing current user selected object(s)
-            # ctx = bpy.context.copy()
-
-            # set as active one of the objects to join
-            # ctx['active_object'] = objects_copy[0]
-
-            # select all objects to join
-            # ctx['selected_editable_objects'] = objects_copy
-
-            # Deselect everything first for cleanliness
+            # Deselect everything
             bpy.ops.object.select_all(action='DESELECT')
 
-            # Select all to join
+            # Select all objects to prepare join operation
             for obj in objects_copy:
                 obj.select_set(True)
             bpy.context.view_layer.objects.active = objects_copy[0]
 
+            # join objects, get result
             bpy.ops.object.join()
-            concat_object = objects_copy[0]  # After join, this holds the merged data
-
-            # join objects into one
-            # with bpy.context.temp_override(active_object=objects_copy[0], selected_objects=objects_copy):
-            #     bpy.ops.object.join()
-            # bpy.ops.object.join(ctx)
-
-            # get reference to created object
-            # concat_object = ctx['active_object']
+            concat_object = objects_copy[0]
 
             # remove duplicate vertices
             if catt_io.rm_duplicates_dist > 0:
 
                 # debug
-                if catt_io.debug:
-                    print('merging neighbor vertices')
+                if catt_io.debug: print('merging neighbour vertices')
 
+                # merge using bmesh
                 bm = bmesh.new()
                 bm.from_mesh(concat_object.data)
                 bmesh.ops.remove_doubles(bm, verts = bm.verts, dist = catt_io.rm_duplicates_dist)
@@ -415,15 +382,16 @@ class MESH_OT_catt_export_room(Operator):
                 concat_object.data.update()
                 bm.free()
 
-            # create new list with only that object
+            # save to locals
             objects_copy = [concat_object]
-
 
         # build list of materials used in objects (unique)
         materials_to_export = []
         for obj in objects_copy:
             [materials_to_export.append(mat) for mat in obj.data.materials]
-        materials_to_export = list(set(materials_to_export)) # remove duplicates
+
+        # remove duplicate materials
+        materials_to_export = list(set(materials_to_export))
 
         # open file
         with open(file_path, 'w', newline='\r\n') as data:
@@ -445,24 +413,19 @@ class MESH_OT_catt_export_room(Operator):
                 # get text
                 text = bpy.data.texts[catt_io.editor_scripts]
 
-                # dump whole text
-                # fw(text.as_string() + '\n\n')
-
-                # dump each line, preceded with CATT comment character
-                for line in text.lines:
-                    fw('; ' + line.body + '\n')
+                # write line as catt comment
+                for line in text.lines: fw('; ' + line.body + '\n')
                 fw('\n\n')
-
 
             # materials
             fw('; MATERIALS \n\n')
             r = 1 # round factor
 
+            # loop over materials
             for i_mat, mat in enumerate(materials_to_export):
 
                 # debug log
-                if catt_io.debug:
-                    print('exporting materials {0}/{1}: {2} '.format(i_mat+1, len(materials_to_export), mat.name))
+                if catt_io.debug: print('exporting materials {0}/{1}: {2} '.format(i_mat+1, len(materials_to_export), mat.name))
 
                 # absorption
                 fw("abs {0} = <{1} {2} {3} {4} {5} {6} : {7} {8}>".format(utils.mat_name_to_str(mat.name), round(mat['abs_0'], r), round(mat['abs_1'], r), round(mat['abs_2'], r), round(mat['abs_3'], r), round(mat['abs_4'], r), round(mat['abs_5'], r), round(mat['abs_6'], r), round(mat['abs_7'], r)))
@@ -471,11 +434,16 @@ class MESH_OT_catt_export_room(Operator):
                 if mat["use_diffraction"]:
 
                     fw(" L ")
+
                     if mat['is_diff_estimate']:
+
                         fw("<estimate({0})>".format(round(mat['diff_estimate'], 3)))
+
                     else:
+
                         fw("<{0} {1} {2} {3} {4} {5} : {6} {7}>".format(round(mat['dif_0'], r), round(mat['dif_1'], r), round(mat['dif_2'], r), round(mat['dif_3'], r), round(mat['dif_4'], r), round(mat['dif_5'], r), round(mat['dif_6'], r), round(mat['dif_7'], r)))
 
+                # colour
                 fw(" {{{0} {1} {2}}} \n".format(int(255*mat.diffuse_color[0]), int(255*mat.diffuse_color[1]), int(255*mat.diffuse_color[2])))
 
             fw('\n\n')
@@ -483,24 +451,30 @@ class MESH_OT_catt_export_room(Operator):
             # vertices header
             fw('CORNERS \n\n')
 
-            vertex_index_offsets = [0] # first one has no offset
-            faces_index_offsets = [0] # first one has no offset
+            # init locals
+            vertex_index_offsets = [0]
+            faces_index_offsets = [0]
 
+            # loop over objects (but first)
             for obj in objects_copy[:-1]:
+
+                # incr. vertices offsets (to prevent vertex id overwrite)
                 vertex_index_offsets.append( len(obj.data.vertices) + vertex_index_offsets[-1])
                 faces_index_offsets.append( len(obj.data.polygons) + faces_index_offsets[-1] )
 
+            # loop over objects
             for i_obj, obj in enumerate(objects_copy):
 
                 # debug log
-                if catt_io.debug:
-                    print('exporting vertices {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
+                if catt_io.debug: print('exporting vertices {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
 
+                # loop over vertices
                 for vertice in obj.data.vertices:
 
+                    # get vertex coords (absolute)
                     coords = (obj.matrix_world @ vertice.co)
-                    # coords = vertice.co
 
+                    # write line
                     index = vertice.index + vertex_index_offsets[i_obj] + 1
                     fw("{0} {1:.2f} {2:.2f} {3:.2f} \n".format(index, coords[0], coords[1], coords[2]) )
 
@@ -516,9 +490,9 @@ class MESH_OT_catt_export_room(Operator):
                 obj_original = objects[i_obj]
 
                 # debug log
-                if catt_io.debug:
-                    print('exporting faces {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj_original.name))
+                if catt_io.debug: print('exporting faces {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj_original.name))
 
+                # loop over faces
                 for i_face, face in enumerate(obj.data.polygons):
 
                     # init locals
@@ -530,21 +504,24 @@ class MESH_OT_catt_export_room(Operator):
                     # auto edge diffraction if collection or object names end with '*'
                     edge_diffraction_str = ''
                     if( len(collection_name) > 0 and collection_name[-1] == '*' ):
+
                         edge_diffraction_str = '*'
                         collection_name = collection_name.rstrip('*')
+
                     if object_name[-1] == '*':
+
                         object_name = object_name.rstrip('*')
                         edge_diffraction_str = '*'
 
                     # shape face name from collection and object names
                     # 'Master Collection' is the name of blender root collection
                     face_name = object_name
-                    if catt_io.export_face_ids:
-                        face_name = "{0}-{1}".format(face_name, face.index) # keep original face id (no offset here)
-                    if collection_name not in ('', 'Master Collection'):
-                        face_name = "{0}-{1}".format(collection_name, face_name)
 
-                    # get face vertice ids
+                     # keep original face id (no offset here)
+                    if catt_io.export_face_ids: face_name = "{0}-{1}".format(face_name, face.index)
+                    if collection_name not in ('', 'Master Collection'): face_name = "{0}-{1}".format(collection_name, face_name)
+
+                    # get face vertices ids
                     offset = vertex_index_offsets[i_obj] + 1
                     vertices_list = [vertice + offset for vertice in face.vertices]
                     vertices_list_str = ' '.join(map(str, vertices_list))
@@ -553,20 +530,14 @@ class MESH_OT_catt_export_room(Operator):
                     offset = faces_index_offsets[i_obj] + 1
                     fw("[ {0} {1} / {2} / {3}{4} ]\n".format(face.index + offset, face_name, vertices_list_str, material_name, edge_diffraction_str) )
 
-
-        # clean
+        # loop over objects to remove
         for i_obj, obj in enumerate(objects_copy):
-            if catt_io.debug:
-                print('deleting copied objects {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
+            if catt_io.debug: print('deleting copied objects {0}/{1}: {2} '.format(i_obj+1, len(objects_copy), obj.name))
             bpy.data.objects.remove(obj)
 
-        # # debug
-        # print('remaining objects:')
-        # for o in bpy.data.objects:
-        #     print("- object:", o.name)
-
         # return
-        print('CATT add-on: file saved at {0}'.format(file_path))
+        if catt_io.debug: print('file saved to: {0}'.format(file_path))
+
         return 0
 
 
@@ -619,7 +590,7 @@ class MESH_OT_catt_export_receiver_animation(Operator):
             file.write(s)
 
         # write to file
-        if catt_io.debug: print('file saved to:', filePath)
+        if catt_io.debug: print('file saved to:', file_path)
         file.close()
 
         self.report({'INFO'}, "Receiver export complete")
@@ -656,6 +627,7 @@ class MESH_OT_catt_export_source_animation(Operator):
 
         # discard if too many positions compared to available source names
         if( len(list_translation) > len(source_names) ):
+
             file.write("ERROR: too many source positions to export, not enough valid CATT source names")
             file.close()
             self.report({'WARNING'}, "Source export aborted")
@@ -675,18 +647,18 @@ class MESH_OT_catt_export_source_animation(Operator):
             s += " \r\n"
             file.write(s)
 
-            # source aim pos
-            s = "  "
-            s += "AIMPOS = "
-            aimpos = mathutils.Vector([0, 0, 0])
-            s += str(round(aimpos.x, round_factor)) + " " + str(round(aimpos.y, round_factor)) + " " + str(round(aimpos.z, round_factor))
-            s += " \r\n"
+            # # source aim pos
+            # s = "  "
+            # s += "AIMPOS = "
+            # aimpos = mathutils.Vector([0, 0, 0])
+            # s += str(round(aimpos.x, round_factor)) + " " + str(round(aimpos.y, round_factor)) + " " + str(round(aimpos.z, round_factor))
+            # s += " \r\n"
             # file.write(s)
 
             file.write("END \r\n \r\n")
 
         # write to file
-        if catt_io.debug: print('file saved to:', filePath)
+        if catt_io.debug: print('file saved to:', file_path)
         file.close()
 
         self.report({'INFO'}, "Source export complete")
@@ -791,12 +763,12 @@ class MESH_OT_catt_export_source_collection(Operator):
             s += " \r\n"
             file.write(s)
 
-            # source aim pos
-            s = "  "
-            s += "AIMPOS = "
-            aimpos = mathutils.Vector([0, 0, 0])
-            s += str(round(aimpos.x, round_factor)) + " " + str(round(aimpos.y, round_factor)) + " " + str(round(aimpos.z, round_factor))
-            s += " \r\n"
+            # # source aim pos
+            # s = "  "
+            # s += "AIMPOS = "
+            # aimpos = mathutils.Vector([0, 0, 0])
+            # s += str(round(aimpos.x, round_factor)) + " " + str(round(aimpos.y, round_factor)) + " " + str(round(aimpos.z, round_factor))
+            # s += " \r\n"
             # file.write(s)
 
             file.write("END \r\n \r\n")
@@ -840,11 +812,10 @@ class MESH_OT_catt_utils(Operator):
             # switch to edit mode
             bpy.ops.object.mode_set(mode = 'EDIT')
 
-            # context = bpy.context
-            # obj = context.edit_object
+            # get mesh
             mesh = bpy.context.edit_object.data
 
-            # select None
+            # deselect everything
             bpy.ops.mesh.select_all(action='DESELECT')
             bm = bmesh.from_edit_mesh(mesh)
             ngons = [f for f in bm.faces if len(f.verts) > 3]
@@ -860,18 +831,18 @@ class MESH_OT_catt_utils(Operator):
                 co = ngon.verts[0].co
                 norm = normal([v.co for v in ngon.verts[:3]])
 
-                # set face selected
+                # set face selected if non-flat
                 ngon.select = not all( [abs(distance_point_to_plane(v.co, co, norm)) < planar_tolerance for v in ngon.verts[3:]] )
 
                 # flag at least one non flat face detected
-                if ngon.select:
-                    has_non_flat_faces = True
+                if ngon.select: has_non_flat_faces = True
 
             # update mesh
             bmesh.update_edit_mesh(mesh)
 
             # disable edit mode if no non-flat face detected
             if not has_non_flat_faces:
+
                 bpy.ops.object.mode_set(mode = 'OBJECT')
                 self.report({'INFO'}, 'No non-flat face detected.')
 
