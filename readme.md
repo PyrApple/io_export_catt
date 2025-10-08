@@ -44,7 +44,7 @@ From https://blender.stackexchange.com/questions/3249/show-mesh-vertices-id:
 - open the Overlays pop-over in the 3D View Overlays pop-over (top right of the 3D view)
 - look for the label Developer and tick the check box ``Indices``
 
-To track down those faces catt reports as non-planar in blender, use these indices and a .geo file exported with the option "Merge Objects" disabled, as enabling this option messes with face ids during export.
+To track down those faces catt reports as non-planar in blender, use these indices and a .geo file exported with the option "Merge Objects" disabled, as enabling this option messes with face ids during export. Note that Blender starts indexing from 0, catt from 1, the face IDs exported as part of the face names in the master.geo file follow blender indexing.
 
 
 ### Weird face normal inversion during export
