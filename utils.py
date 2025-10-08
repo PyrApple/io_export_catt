@@ -73,7 +73,7 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
     return bm
 
 
-def parse_geo_file(filepath):
+def parse_geo_file(filepath, is_debug):
 
     # init locals
     materials = dict()
@@ -87,6 +87,7 @@ def parse_geo_file(filepath):
 
             # shape data
             line_split = line.split()
+            if( is_debug ): print(line_split)
 
             # discard empty lines
             if( len(line_split) == 0 ): continue

@@ -176,8 +176,11 @@ class MESH_OT_catt_import(Operator, ImportHelper):
     def execute(self, context):
         """ method called from ui """
 
+        # init local
+        catt_io = context.scene.catt_io
+
         # parse data from geo file
-        [vertices, faces, materials, is_error_detected] = utils.parse_geo_file(self.filepath)
+        [vertices, faces, materials, is_error_detected] = utils.parse_geo_file(self.filepath, catt_io.debug)
         if( is_error_detected ):
             self.report({'ERROR'}, 'Look into the console for more info')
 
