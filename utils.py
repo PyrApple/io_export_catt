@@ -452,18 +452,17 @@ def find_layer_collection(layer_coll, target_collection):
 
 
 # get material bsdf node color if exist
-def get_mat_bsdf_color(mat):
+def get_mat_color(mat):
 
-    # init locals
-    default_color = (1.0, 1.0, 1.0, 1.0)
-
-    # return default colour if material doesn't use nodes
-    if not mat.use_nodes: return default_color
+    # return current diffuse_color if material doesn't use nodes
+    if not mat.use_nodes:
+        return mat.diffuse_color
 
     # return bsdf colour if available
     for node in mat.node_tree.nodes:
         if node.type == 'BSDF_PRINCIPLED':
             return node.inputs["Base Color"].default_value
 
-    # if not bsdf node was found
+    # return default color if not bsdf node was found
+    default_color = (1.0, 1.0, 1.0, 1.0)
     return default_color
