@@ -715,6 +715,7 @@ class MESH_OT_catt_export_receiver_collection(Operator):
             s += str(round(loc.x, round_factor)) + " " + str(round(loc.y, round_factor)) + " " + str(round(loc.z, round_factor)) + " "
 
             # write to file
+            if catt_io.debug: print('export', obj.name, 'as receiver', obj_id)
             s += "\r\n"
             file.write(s)
 
@@ -722,7 +723,7 @@ class MESH_OT_catt_export_receiver_collection(Operator):
             obj_id += 1
 
         # write to file
-        if catt_io.debug: print('file saved to:', filePath)
+        if catt_io.debug: print('file saved to:', file_path)
         file.close()
 
         self.report({'INFO'}, "Receiver export complete")
